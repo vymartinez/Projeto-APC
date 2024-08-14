@@ -26,9 +26,9 @@ int Play() {
     return 1;
 }
 
-void printConfig(int invalid) {
+void printConfig(char invalid) {
     printf("\n");
-    if (invalid != 0) {
+    if (invalid != '0') {
         printf("Opcao invalida! Selecione uma opcao do menu, por favor.\n\n");
     }
     printf("                  Configuracoes                   \n");
@@ -59,39 +59,40 @@ int main() {
     EnterNickname();
     while (1) {
         char option = '0';
-        printMenu(0);
-        scanf("%c", &option);
-        printf("\n");
-        switch(option) {
-            case '1':
-                Play();
-            break;
-            case '2':
-                printConfig(0);
-                option = '0';
-                while ((option-'0') < 1 || (option-'0') > 3) {
-                    scanf("%c", &option);
-                    printf("\n");
-                    switch(option) {
-                        case '1':
-                            printf("Dificuldade\n");
-                        break;
-                        case '2':
-                            printf("Sugerir novo nivel\n");
-                        break;
-                        case '3':
-                        break;
-                        default:
-                            printConfig(option-'0');
-                        break;
+        while ((option-'0') < 1 || (option-'0') > 4) {
+            printMenu(option);
+            scanf("%c\n", &option);
+            printf("\n");
+            switch(option) {
+                case '1':
+                    Play();
+                    break;
+                case '2':
+                    option = '0';
+                    while ((option-'0') < 1 || (option-'0') > 3) {
+                        printConfig(option);
+                        scanf("%c\n", &option);
+                        printf("\n");
+                        switch(option) {
+                            case '1':
+                                printf("Dificuldade\n");
+                                break;
+                            case '2':
+                                printf("Sugerir novo nivel\n");
+                                break;
+                            case '3':
+                                option = '0';
+                                break;
+                        }
                     }
-                }
-            break;
-            case '3':
-                printf("Ranking\n");
-            break;
-            case '4':
-                return 0;
+                    break;
+                case '3':
+                    printf("Ranking\n");
+                    break;
+                case '4':
+                    return 0;
+                    break;
+            }
         }
     }
 }
