@@ -8,8 +8,8 @@ typedef struct players {
     int score;
 } players;
 
-int menu, settings, ranking, chooseDificulty, played;
-int dificulty = 1;
+int menu, settings, ranking, chooseDificulty, played, dificulty;
+dificulty = 1;
 char modes[3][10] = {"Facil", "Medio", "Dificil"};
 players player;
 
@@ -52,7 +52,7 @@ void EnterNickname() {
                 fclose(file);
                 continuation = 1;
                 while (continuation) {
-                    printf("\no usuario '%s' ja existe. Deseja continuar?(S/N)\n", player.name);
+                    printf("\no usuario '%s' ja existe. Deseja continuar? (S/N): ", player.name);
                     scanf("\n%c", &answer);
                     if (answer == 'S') {
                         continuation = 0;
@@ -137,7 +137,7 @@ void printRanking() {
         fclose(file);
         printf("\n################################################\n\n");
     }
-    printf("Pressione qualquer tecla para voltar ao menu.\n");
+    printf("Pressione qualquer tecla para voltar ao menu: ");
     return;
 }
 
@@ -147,7 +147,18 @@ void suggestGame() {
 
 int Play() {
     //TODO: implementar a gameplay aqui
-    player.score += 100;
+    switch(dificulty) {
+        case 1:
+            FILE *easy = fopen("easy.txt", "r");
+            break;
+        case 2:
+            FILE *medium = fopen("medium.txt", "r");
+            break;
+        case 3:
+            FILE *medium = fopen("hard.txt", "r");
+            break;
+    }
+    player.score += 100 * dificulty;
     FILE *file = fopen("rank.bin", "rb");
     fread(&played, sizeof(int), 1, file);
     players ranking[played];
