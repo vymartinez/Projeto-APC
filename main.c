@@ -8,8 +8,9 @@ typedef struct players {
     int score;
 } players;
 
-int menu, settings, ranking, chooseDificulty, played, dificulty;
-dificulty = 1;
+int menu, settings, ranking, chooseDificulty, played, random, level;
+int easyCols[4], easyRows[4], easyMatrix[4][4];
+int dificulty = 1;
 char modes[3][10] = {"Facil", "Medio", "Dificil"};
 players player;
 
@@ -145,20 +146,45 @@ void suggestGame() {
     //TODO: implementar funcionalidade do player poder sugerir uma nova matriz (ULTIMA TAREFA)
 }
 
+void generateEasyGame() {
+    FILE *easy = fopen("easy.txt", "r");
+    if (easy == NULL) {
+        printf("\nNao foi possivel iniciar a fase. Tente novamente mais tarde!\n");
+        return;
+    }
+        //random = rand() % 10;
+        //fseek(easy, (28*random), SEEK_SET);
+        fscanf(easy, "ID: %d\n", &level);
+        fscanf(easy, "COLS: %d %d %d %d\n", &easyCols[0], &easyCols[1], &easyCols[2], &easyCols[3]);
+        fscanf(easy, "ROWS: %d %d %d %d\n", &easyRows[0], &easyRows[1], &easyRows[2], &easyRows[3]);
+        for (int i = 0; i < 4; i++) {
+            fscanf(easy, "%d %d %d %d\n", &easyMatrix[i][0], &easyMatrix[i][1], &easyMatrix[i][2], &easyMatrix[i][3]);
+        }
+        fclose(easy);
+        printf("\n");
+        for (int i = 0; i < 4; i++) {
+            if (i == 3) {
+                printf("%d\n", easyCols[i]);
+            } else {
+                printf("%d ", easyCols[i]);
+            }
+        }
+}
+
 int Play() {
     //TODO: implementar a gameplay aqui
     switch(dificulty) {
         case 1:
-            FILE *easy = fopen("easy.txt", "r");
+            generateEasyGame();
             break;
         case 2:
-            FILE *medium = fopen("medium.txt", "r");
+            //FILE *medium = fopen("medium.txt", "r");
             break;
         case 3:
-            FILE *medium = fopen("hard.txt", "r");
+            //FILE *medium = fopen("hard.txt", "r");
             break;
     }
-    player.score += 100 * dificulty;
+    //player.score += 100 * dificulty;
     FILE *file = fopen("rank.bin", "rb");
     fread(&played, sizeof(int), 1, file);
     players ranking[played];
