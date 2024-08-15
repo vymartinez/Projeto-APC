@@ -8,8 +8,8 @@ typedef struct players {
     int score;
 } players;
 
-int menu, settings, ranking, chooseDificulty, played, random, level;
-int easyCols[4], easyRows[4], easyMatrix[4][4];
+int menu, playing, settings, ranking, chooseDificulty, played, random, level;
+int easyCols[4], easyRows[4], easyMatrix[4][4], easyColsDelete[4], easyRowsDelete[4], lives;
 int dificulty = 1;
 char modes[3][10] = {"Facil", "Medio", "Dificil"};
 players player;
@@ -152,23 +152,40 @@ void generateEasyGame() {
         printf("\nNao foi possivel iniciar a fase. Tente novamente mais tarde!\n");
         return;
     }
-        //random = rand() % 10;
-        //fseek(easy, (28*random), SEEK_SET);
+    if (playing == 0) {
+        random = rand() % 10;
+        fseek(easy, (28*random), SEEK_SET);
+    }
         fscanf(easy, "ID: %d\n", &level);
         fscanf(easy, "COLS: %d %d %d %d\n", &easyCols[0], &easyCols[1], &easyCols[2], &easyCols[3]);
         fscanf(easy, "ROWS: %d %d %d %d\n", &easyRows[0], &easyRows[1], &easyRows[2], &easyRows[3]);
         for (int i = 0; i < 4; i++) {
             fscanf(easy, "%d %d %d %d\n", &easyMatrix[i][0], &easyMatrix[i][1], &easyMatrix[i][2], &easyMatrix[i][3]);
         }
+        fscanf(easy, "COLSDELETE: %d %d %d %d\n", &easyColsDelete[0], &easyColsDelete[1], &easyColsDelete[2], &easyColsDelete[3]);
+        fscanf(easy, "ROWSDELETE: %d %d %d %d\n", &easyRowsDelete[0], &easyRowsDelete[1], &easyRowsDelete[2], &easyRowsDelete[3]);
         fclose(easy);
-        printf("\n");
+        playing = 1;
+        printf("\n X | ");
         for (int i = 0; i < 4; i++) {
             if (i == 3) {
-                printf("%d\n", easyCols[i]);
+                printf("%2d\n", easyCols[i]);
             } else {
-                printf("%d ", easyCols[i]);
+                printf("%2d ", easyCols[i]);
             }
         }
+        for (int i = 0; i < 4; i++) {
+            printf("%2d | ", easyCols[i]);
+            for (int j = 0; j < 4; j++) {
+                if (j == 3) {
+                    printf("%2d\n", easyMatrix[i][j]);
+                } else {
+                    printf("%2d ", easyMatrix[i][j]);
+                }
+            }
+        }
+        printf("\n");
+        printf("Selecione, respectivamente, a linha e a matriz do numero que voce deseja excluir: \n\n");
 }
 
 int Play() {
@@ -210,6 +227,8 @@ int main() {
     char menuOption;
     EnterNickname();
     while (menu) {
+        lives = 5;
+        playing = 0;
         printMenu();
         scanf("\n%c", &menuOption);
         switch(menuOption) {
