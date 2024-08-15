@@ -1,30 +1,84 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
-
-int menu, settings, ranking, chooseDificulty, played;
-int dificulty = 1;
-char modes[3][10] = {"Facil", "Medio", "Dificil"};
-char player[21];
+#include <stdlib.h>
 
 typedef struct players {
     char name[21];
     int score;
 } players;
 
+int menu, settings, ranking, chooseDificulty, played;
+int dificulty = 1;
+char modes[3][10] = {"Facil", "Medio", "Dificil"};
+players player;
+
+int compare(players *a, players *b) {
+    if (a->score < b->score) {
+        return 1;
+    }
+    return -1;
+}
+
 void EnterNickname() {
     printf("\nDigite seu nome(ate 20 caracteres): ");
-    scanf("%s", player);
-    int len = strlen(player);
+    scanf("%s", player.name);
+    int len = strlen(player.name);
     for (int i = 0; i < len; i++) {
-        if (!isalpha(player[i]) && player[i] != ' ') { 
+        if (!isalpha(player.name[i]) && player.name[i] != ' ') { 
             printf("\nNome invalido! Digite um nome valido, por favor.\n");
             EnterNickname();
             return;
         }
     }
-    menu = 1;
-    return;
+    FILE *file = fopen("rank.bin","rb");
+    if (file == NULL) {
+        fclose(file);
+        menu = played = 1;
+        player.score = 0;
+        FILE *file2 = fopen("rank.bin","wb");
+        fwrite(&played, sizeof(int), 1, file2);
+        fwrite(&player, sizeof(players), 1, file2);
+        fclose(file2);
+        return;
+    } else {
+        int continuation = 0;
+        char answer;
+        fread(&played, sizeof(int), 1, file);
+        players allPlayers[played];
+        for (int i = 0; i < played; i++) {
+            fread(&allPlayers[i], sizeof(players), 1, file);
+            if (strcmp(allPlayers[i].name, player.name) == 0) {
+                fclose(file);
+                continuation = 1;
+                while (continuation) {
+                    printf("\no usuario '%s' ja existe. Deseja continuar?(S/N)\n", player.name);
+                    scanf("\n%c", &answer);
+                    if (answer == 'S') {
+                        continuation = 0;
+                        menu = 1;
+                        player.score = allPlayers[i].score;
+                        return;
+                    } else if (answer == 'N') {
+                        EnterNickname();
+                        return;
+                    }
+                }
+            }
+        }
+        menu = 1;
+        player.score = 0;
+        played++;
+        fclose(file);
+        FILE *file2 = fopen("rank.bin","wb");
+        fwrite(&played, sizeof(int), 1, file2);
+        for (int i = 0; i < played-1; i++) {
+            fwrite(&allPlayers[i], sizeof(players), 1, file2);
+        }
+        fwrite(&player, sizeof(players), 1, file2);
+        fclose(file2);
+        return;
+    }
 }
 
 void printMenu() {
@@ -67,7 +121,7 @@ void printDificulty() {
 
 void printRanking() {
     players rankingPlayer;
-    FILE *file = fopen("ranking.bin","rb");
+    FILE *file = fopen("rank.bin","rb");
     if (file == NULL) {
         printf("\nNenhum jogador cadastrado ainda.\n\n");
         fclose(file);
@@ -78,10 +132,10 @@ void printRanking() {
         fread(&played, sizeof(int), 1, file);
         for (int i = 1; i <= played; i++) {
             fread(&rankingPlayer, sizeof(players), 1, file);
-            printf("%d - %s - %d\n", i, rankingPlayer.name, rankingPlayer.score);
+            printf("%d. %s - PONTOS: %d\n", i, rankingPlayer.name, rankingPlayer.score);
         }
         fclose(file);
-        printf("################################################\n\n");
+        printf("\n################################################\n\n");
     }
     printf("Pressione qualquer tecla para voltar ao menu.\n");
     return;
@@ -93,6 +147,24 @@ void suggestGame() {
 
 int Play() {
     //TODO: implementar a gameplay aqui
+    player.score += 100;
+    FILE *file = fopen("rank.bin", "rb");
+    fread(&played, sizeof(int), 1, file);
+    players ranking[played];
+    for (int i = 0; i < played; i++) {
+        fread(&ranking[i], sizeof(players), 1, file);
+        if (strcmp(ranking[i].name, player.name) == 0) {
+            ranking[i].score = player.score;
+        }
+    }
+    fclose(file);
+    qsort(ranking, played, sizeof(players), compare);
+    FILE *file2 = fopen("rank.bin", "wb");
+    fwrite(&played, sizeof(int), 1, file2);
+    for (int i = 0; i < played; i++) {
+        fwrite(&ranking[i], sizeof(players), 1, file2);
+    }
+    fclose(file2);
     return 1;
 }
 
