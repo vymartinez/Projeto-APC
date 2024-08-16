@@ -10,7 +10,9 @@ typedef struct players {
 
 int menu, playing, settings, ranking, chooseDificulty, played, random, level, row, col, correct, lastTurn;
 int easyCols[4], easyRows[4], easyMatrix[4][4], easyColsDelete[7], easyRowsDelete[7],
-mediumCols[6], mediumRows[6], mediumMatrix[6][6], mediumColsDelete[21], mediumRowsDelete[21], hardCols[7], hardRows[7], hardMatrix[7][7], hardColsDelete[32], hardRowsDelete[32], lives;
+mediumCols[6], mediumRows[6], mediumMatrix[6][6], mediumColsDelete[21], mediumRowsDelete[21],
+hardCols[7], hardRows[7], hardMatrix[7][7], hardColsDelete[32], hardRowsDelete[32], lives;
+int easyOffsets[3] = {0, 116, 216}, mediumOffsets[3] = {0, 158, 316}, hardOffsets[3] = {0, 198, 396};
 int dificulty = 1;
 char modes[3][10] = {"Facil", "Medio", "Dificil"};
 players player;
@@ -179,11 +181,11 @@ void playEasyGame() {
         printf("\nVoce ainda tem %d vidas!\n", lives);
         printf("Selecione, respectivamente, a linha e a matriz do numero que voce deseja excluir (L C): \n\n");
         scanf("\n%d %d", &row, &col);
-        for (int i = 0; i < 6; i++) {
+        for (int i = 0; i < 7; i++) {
             if (row == easyRowsDelete[i] && col == easyColsDelete[i]) {
                 easyMatrix[row-1][col-1] = -1;
                 correct++;
-                if (correct == 6) {
+                if (correct == 7) {
                     printf("\nVoce ganhou! Parabens! Aperte qualquer tecla para continuar: ");
                     getchar();
                     getchar();
@@ -198,7 +200,79 @@ void playEasyGame() {
         }
         if (correct == lastTurn) {
             lives--;
-            printf("\nVoce errou. Ainda restam %d vidas!\n", lives);
+            printf("\nVoce errou. Ainda restam %d vidas! Aperte qualquer tecla para continuar: ", lives);
+            getchar();
+            getchar();
+            printf("\n");
+        }
+        if (lives == 0) {
+            printf("\nVoce perdeu! Aperte qualquer tecla para continuar: ");
+            getchar();
+            getchar();
+            playing = 0;
+        }
+    }
+}
+
+void playMediumGame() {
+    while (playing) {
+        lastTurn = correct;
+        printf("\n X | ");
+        for (int i = 0; i < 6; i++) {
+            if (i == 5) {
+                printf("%2d\n", mediumCols[i]);
+            } else {
+                printf("%2d | ", mediumCols[i]);
+            }
+        }
+        for (int i = 0; i < 32; i++) {
+            printf("-");
+        }
+        printf("\n");
+        for (int i = 0; i < 6; i++) {
+            printf("%2d | ", mediumRows[i]);
+            for (int j = 0; j < 6; j++) {
+                if (j == 5) {
+                    if (mediumMatrix[i][j] == -1) {
+                        printf("  \n");
+                    } else {
+                        printf("%2d\n", mediumMatrix[i][j]);
+                    }
+                } else {
+                    if (mediumMatrix[i][j] == -1) {
+                        printf("     ");
+                    } else {
+                        printf("%2d   ", mediumMatrix[i][j]);
+                    }
+                }
+            }
+        }
+        printf("\nVoce ainda tem %d vidas!\n", lives);
+        printf("Selecione, respectivamente, a linha e a matriz do numero que voce deseja excluir (L C): \n\n");
+        scanf("\n%d %d", &row, &col);
+        for (int i = 0; i < 21; i++) {
+            if (row == mediumRowsDelete[i] && col == mediumColsDelete[i]) {
+                mediumMatrix[row-1][col-1] = -1;
+                correct++;
+                if (correct == 21) {
+                    printf("\nVoce ganhou! Parabens! Aperte qualquer tecla para continuar: ");
+                    getchar();
+                    getchar();
+                    playing = 0;
+                    return;
+                }
+                printf("\nVoce acertou, parabens! Aperte qualquer tecla para continuar.\n");
+                getchar();
+                getchar();
+                break;
+            }
+        }
+        if (correct == lastTurn) {
+            lives--;
+            printf("\nVoce errou. Ainda restam %d vidas! Aperte qualquer tecla para continuar: ", lives);
+            getchar();
+            getchar();
+            printf("\n");
         }
         if (lives == 0) {
             printf("\nVoce perdeu! Aperte qualquer tecla para continuar: ");
@@ -221,14 +295,19 @@ void generateEasyGame() {
         return;
     }
     if (playing == 0) {
-        random = rand() % 9;
-        fseek(easy, (134*random), SEEK_SET);
+        srand(time(0));
+        random = (rand() % 3);
+        fseek(easy, (216), SEEK_SET);
     }
         fscanf(easy, "ID: %d\n", &level);
         fscanf(easy, "COLS: %d %d %d %d\n", &easyCols[0], &easyCols[1], &easyCols[2], &easyCols[3]);
         fscanf(easy, "ROWS: %d %d %d %d\n", &easyRows[0], &easyRows[1], &easyRows[2], &easyRows[3]);
-        fscanf(easy, "COLSDEL: %d %d %d %d %d %d %d\n", &easyColsDelete[0], &easyColsDelete[1], &easyColsDelete[2], &easyColsDelete[3], &easyColsDelete[4], &easyColsDelete[5], &easyColsDelete[6]);
-        fscanf(easy, "ROWSDEL: %d %d %d %d %d %d %d\n", &easyRowsDelete[0], &easyRowsDelete[1], &easyRowsDelete[2], &easyRowsDelete[3], &easyRowsDelete[4], &easyRowsDelete[5], &easyRowsDelete[6]);
+        for (int i = 0; i < 7; i++) {
+            fscanf(easy, "%d", &easyColsDelete[i]);
+        }
+        for (int i = 0; i < 7; i++) {
+            fscanf(easy, "%d", &easyRowsDelete[i]);
+        }
         for (int i = 0; i < 4; i++) {
             fscanf(easy, "%d %d %d %d\n", &easyMatrix[i][0], &easyMatrix[i][1], &easyMatrix[i][2], &easyMatrix[i][3]);
         }
@@ -237,15 +316,43 @@ void generateEasyGame() {
         correct = lastTurn = 0;
         playEasyGame();
 }
+void generateMediumGame() {
+    FILE *medium = fopen("medium.txt", "r");
+    if (medium == NULL) {
+        printf("\nNao foi possivel iniciar a fase. Tente novamente mais tarde!\n");
+        fclose(medium);
+        return;
+    }
+    if (playing == 0) {
+        //srand(time(0));
+        //random = (rand() % 3);
+        //fseek(medium, (mediumOffsets[random]), SEEK_SET);
+    }
+        fscanf(medium, "ID: %d\n", &level);
+        fscanf(medium, "COLS: %d %d %d %d %d %d\n", &mediumCols[0], &mediumCols[1], &mediumCols[2], &mediumCols[3], &mediumCols[4], &mediumCols[5]);
+        fscanf(medium, "ROWS: %d %d %d %d %d %d\n", &mediumRows[0], &mediumRows[1], &mediumRows[2], &mediumRows[3], &mediumRows[4], &mediumRows[5]);
+        for (int i = 0; i < 21; i++) {
+            fscanf(medium, "%d", &mediumColsDelete[i]);
+        }
+        for (int i = 0; i < 21; i++) {
+            fscanf(medium, "%d", &mediumRowsDelete[i]);
+        }
+        for (int i = 0; i < 6; i++) {
+            fscanf(medium, "%d %d %d %d %d %d\n", &mediumMatrix[i][0], &mediumMatrix[i][1], &mediumMatrix[i][2], &mediumMatrix[i][3], &mediumMatrix[i][4], &mediumMatrix[i][5]);
+        }
+        fclose(medium);
+        playing = 1;
+        correct = lastTurn = 0;
+        playMediumGame();
+}
 
 void Play() {
-    //TODO: implementar a gameplay aqui
     switch(dificulty) {
         case 1:
             generateEasyGame();
             break;
         case 2:
-            //FILE *medium = fopen("medium.txt", "r");
+            generateMediumGame();
             break;
         case 3:
             //FILE *medium = fopen("hard.txt", "r");
