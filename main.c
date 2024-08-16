@@ -8,8 +8,9 @@ typedef struct players {
     int score;
 } players;
 
-int menu, playing, settings, ranking, chooseDificulty, played, random, level;
-int easyCols[4], easyRows[4], easyMatrix[4][4], easyColsDelete[4], easyRowsDelete[4], lives;
+int menu, playing, settings, ranking, chooseDificulty, played, random, level, row, col, correct, lastTurn;
+int easyCols[4], easyRows[4], easyMatrix[4][4], easyColsDelete[7], easyRowsDelete[7],
+mediumCols[6], mediumRows[6], mediumMatrix[6][6], mediumColsDelete[21], mediumRowsDelete[21], hardCols[7], hardRows[7], hardMatrix[7][7], hardColsDelete[32], hardRowsDelete[32], lives;
 int dificulty = 1;
 char modes[3][10] = {"Facil", "Medio", "Dificil"};
 players player;
@@ -32,12 +33,12 @@ void EnterNickname() {
             return;
         }
     }
-    FILE *file = fopen("rank.bin","rb");
+    FILE *file = fopen("ranking.bin","rb");
     if (file == NULL) {
         fclose(file);
         menu = played = 1;
         player.score = 0;
-        FILE *file2 = fopen("rank.bin","wb");
+        FILE *file2 = fopen("ranking.bin","wb");
         fwrite(&played, sizeof(int), 1, file2);
         fwrite(&player, sizeof(players), 1, file2);
         fclose(file2);
@@ -71,7 +72,7 @@ void EnterNickname() {
         player.score = 0;
         played++;
         fclose(file);
-        FILE *file2 = fopen("rank.bin","wb");
+        FILE *file2 = fopen("ranking.bin","wb");
         fwrite(&played, sizeof(int), 1, file2);
         for (int i = 0; i < played-1; i++) {
             fwrite(&allPlayers[i], sizeof(players), 1, file2);
@@ -122,7 +123,7 @@ void printDificulty() {
 
 void printRanking() {
     players rankingPlayer;
-    FILE *file = fopen("rank.bin","rb");
+    FILE *file = fopen("ranking.bin","rb");
     if (file == NULL) {
         printf("\nNenhum jogador cadastrado ainda.\n\n");
         fclose(file);
@@ -131,7 +132,7 @@ void printRanking() {
         printf("                    Ranking                      \n");
         printf("################################################\n\n");
         fread(&played, sizeof(int), 1, file);
-        for (int i = 1; i <= played; i++) {
+        for (int i = 1; i <= 10 && i <= played; i++) {
             fread(&rankingPlayer, sizeof(players), 1, file);
             printf("%d. %s - PONTOS: %d\n", i, rankingPlayer.name, rankingPlayer.score);
         }
@@ -142,6 +143,72 @@ void printRanking() {
     return;
 }
 
+void playEasyGame() {
+    while (playing) {
+        lastTurn = correct;
+        printf("\n X | ");
+        for (int i = 0; i < 4; i++) {
+            if (i == 3) {
+                printf("%2d\n", easyCols[i]);
+            } else {
+                printf("%2d | ", easyCols[i]);
+            }
+        }
+        for (int i = 0; i < 22; i++) {
+            printf("-");
+        }
+        printf("\n");
+        for (int i = 0; i < 4; i++) {
+            printf("%2d | ", easyRows[i]);
+            for (int j = 0; j < 4; j++) {
+                if (j == 3) {
+                    if (easyMatrix[i][j] == -1) {
+                        printf("  \n");
+                    } else {
+                        printf("%2d\n", easyMatrix[i][j]);
+                    }
+                } else {
+                    if (easyMatrix[i][j] == -1) {
+                        printf("     ");
+                    } else {
+                        printf("%2d   ", easyMatrix[i][j]);
+                    }
+                }
+            }
+        }
+        printf("\nVoce ainda tem %d vidas!\n", lives);
+        printf("Selecione, respectivamente, a linha e a matriz do numero que voce deseja excluir (L C): \n\n");
+        scanf("\n%d %d", &row, &col);
+        for (int i = 0; i < 6; i++) {
+            if (row == easyRowsDelete[i] && col == easyColsDelete[i]) {
+                easyMatrix[row-1][col-1] = -1;
+                correct++;
+                if (correct == 6) {
+                    printf("\nVoce ganhou! Parabens! Aperte qualquer tecla para continuar: ");
+                    getchar();
+                    getchar();
+                    playing = 0;
+                    return;
+                }
+                printf("\nVoce acertou, parabens! Aperte qualquer tecla para continuar.\n");
+                getchar();
+                getchar();
+                break;
+            }
+        }
+        if (correct == lastTurn) {
+            lives--;
+            printf("\nVoce errou. Ainda restam %d vidas!\n", lives);
+        }
+        if (lives == 0) {
+            printf("\nVoce perdeu! Aperte qualquer tecla para continuar: ");
+            getchar();
+            getchar();
+            playing = 0;
+        }
+    }
+}
+
 void suggestGame() {
     //TODO: implementar funcionalidade do player poder sugerir uma nova matriz (ULTIMA TAREFA)
 }
@@ -150,45 +217,28 @@ void generateEasyGame() {
     FILE *easy = fopen("easy.txt", "r");
     if (easy == NULL) {
         printf("\nNao foi possivel iniciar a fase. Tente novamente mais tarde!\n");
+        fclose(easy);
         return;
     }
     if (playing == 0) {
-        random = rand() % 10;
-        fseek(easy, (28*random), SEEK_SET);
+        random = rand() % 9;
+        fseek(easy, (134*random), SEEK_SET);
     }
         fscanf(easy, "ID: %d\n", &level);
         fscanf(easy, "COLS: %d %d %d %d\n", &easyCols[0], &easyCols[1], &easyCols[2], &easyCols[3]);
         fscanf(easy, "ROWS: %d %d %d %d\n", &easyRows[0], &easyRows[1], &easyRows[2], &easyRows[3]);
+        fscanf(easy, "COLSDEL: %d %d %d %d %d %d %d\n", &easyColsDelete[0], &easyColsDelete[1], &easyColsDelete[2], &easyColsDelete[3], &easyColsDelete[4], &easyColsDelete[5], &easyColsDelete[6]);
+        fscanf(easy, "ROWSDEL: %d %d %d %d %d %d %d\n", &easyRowsDelete[0], &easyRowsDelete[1], &easyRowsDelete[2], &easyRowsDelete[3], &easyRowsDelete[4], &easyRowsDelete[5], &easyRowsDelete[6]);
         for (int i = 0; i < 4; i++) {
             fscanf(easy, "%d %d %d %d\n", &easyMatrix[i][0], &easyMatrix[i][1], &easyMatrix[i][2], &easyMatrix[i][3]);
         }
-        fscanf(easy, "COLSDELETE: %d %d %d %d\n", &easyColsDelete[0], &easyColsDelete[1], &easyColsDelete[2], &easyColsDelete[3]);
-        fscanf(easy, "ROWSDELETE: %d %d %d %d\n", &easyRowsDelete[0], &easyRowsDelete[1], &easyRowsDelete[2], &easyRowsDelete[3]);
         fclose(easy);
         playing = 1;
-        printf("\n X | ");
-        for (int i = 0; i < 4; i++) {
-            if (i == 3) {
-                printf("%2d\n", easyCols[i]);
-            } else {
-                printf("%2d ", easyCols[i]);
-            }
-        }
-        for (int i = 0; i < 4; i++) {
-            printf("%2d | ", easyCols[i]);
-            for (int j = 0; j < 4; j++) {
-                if (j == 3) {
-                    printf("%2d\n", easyMatrix[i][j]);
-                } else {
-                    printf("%2d ", easyMatrix[i][j]);
-                }
-            }
-        }
-        printf("\n");
-        printf("Selecione, respectivamente, a linha e a matriz do numero que voce deseja excluir: \n\n");
+        correct = lastTurn = 0;
+        playEasyGame();
 }
 
-int Play() {
+void Play() {
     //TODO: implementar a gameplay aqui
     switch(dificulty) {
         case 1:
@@ -201,25 +251,26 @@ int Play() {
             //FILE *medium = fopen("hard.txt", "r");
             break;
     }
-    //player.score += 100 * dificulty;
-    FILE *file = fopen("rank.bin", "rb");
-    fread(&played, sizeof(int), 1, file);
-    players ranking[played];
-    for (int i = 0; i < played; i++) {
-        fread(&ranking[i], sizeof(players), 1, file);
-        if (strcmp(ranking[i].name, player.name) == 0) {
-            ranking[i].score = player.score;
+    if (lives != 0) {
+        player.score += 100*dificulty;
+        FILE *file = fopen("ranking.bin", "rb");
+        fread(&played, sizeof(int), 1, file);
+        players ranking[played];
+        for (int i = 0; i < played; i++) {
+            fread(&ranking[i], sizeof(players), 1, file);
+            if (strcmp(ranking[i].name, player.name) == 0) {
+                ranking[i].score = player.score;
+            }
         }
+        fclose(file);
+        qsort(ranking, played, sizeof(players), compare);
+        FILE *file2 = fopen("ranking.bin", "wb");
+        fwrite(&played, sizeof(int), 1, file2);
+        for (int i = 0; i < played; i++) {
+            fwrite(&ranking[i], sizeof(players), 1, file2);
+        }
+        fclose(file2);
     }
-    fclose(file);
-    qsort(ranking, played, sizeof(players), compare);
-    FILE *file2 = fopen("rank.bin", "wb");
-    fwrite(&played, sizeof(int), 1, file2);
-    for (int i = 0; i < played; i++) {
-        fwrite(&ranking[i], sizeof(players), 1, file2);
-    }
-    fclose(file2);
-    return 1;
 }
 
 int main() {
@@ -228,9 +279,9 @@ int main() {
     EnterNickname();
     while (menu) {
         lives = 5;
-        playing = 0;
         printMenu();
         scanf("\n%c", &menuOption);
+        printf("\n");
         switch(menuOption) {
             case '1':
                 Play();
@@ -247,6 +298,7 @@ int main() {
                             while (chooseDificulty) {
                                 printDificulty();
                                 scanf("\n%c", &menuOption);
+                                printf("\n");
                                 switch(menuOption) {
                                     case '1':
                                         dificulty = 1;
