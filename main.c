@@ -12,8 +12,8 @@ int menu, playing, settings, ranking, chooseDificulty, played, random, level, ro
 int easyCols[4], easyRows[4], easyMatrix[4][4], easyColsDelete[7], easyRowsDelete[7],
 mediumCols[6], mediumRows[6], mediumMatrix[6][6], mediumColsDelete[21], mediumRowsDelete[21],
 hardCols[7], hardRows[7], hardMatrix[7][7], hardColsDelete[32], hardRowsDelete[32], lives;
-int easyOffsets[3] = {0, 116, 216}, mediumOffsets[3] = {0, 218, 0}, hardOffsets[3] = {0, 294, 585};
-int dificulty = 2;
+int easyOffsets[3] = {0, 116, 216}, mediumOffsets[3] = {0, 218, 432}, hardOffsets[3] = {0, 294, 587};
+int dificulty = 1;
 char modes[3][10] = {"Facil", "Medio", "Dificil"};
 players player;
 
@@ -371,7 +371,7 @@ void generateEasyGame() {
     if (playing == 0) {
         srand(time(0));
         random = (rand() % 3);
-        fseek(easy, (216), SEEK_SET);
+        fseek(easy, (easyOffsets[random]), SEEK_SET);
     }
         fscanf(easy, "ID: %d\n", &level);
         fscanf(easy, "COLS: %d %d %d %d\n", &easyCols[0], &easyCols[1], &easyCols[2], &easyCols[3]);
@@ -398,9 +398,9 @@ void generateMediumGame() {
         return;
     }
     if (playing == 0) {
-        //srand(time(0));
-        //random = (rand() % 3);
-        fseek(medium, (218), SEEK_SET);
+        srand(time(0));
+        random = (rand() % 3);
+        fseek(medium, (mediumOffsets[random]), SEEK_SET);
     }
         fscanf(medium, "ID: %d\n", &level);
         fscanf(medium, "COLS: %d %d %d %d %d %d\n", &mediumCols[0], &mediumCols[1], &mediumCols[2], &mediumCols[3], &mediumCols[4], &mediumCols[5]);
@@ -428,9 +428,9 @@ void generateHardGame() {
         return;
     }
     if (playing == 0) {
-        //srand(time(0));
-        //random = (rand() % 3);
-        fseek(hard, (294), SEEK_SET);
+        srand(time(0));
+        random = (rand() % 3);
+        fseek(hard, (hardOffsets[random]), SEEK_SET);
     }
         fscanf(hard, "ID: %d\n", &level);
         fscanf(hard, "COLS: %d %d %d %d %d %d %d\n", &hardCols[0], &hardCols[1], &hardCols[2], &hardCols[3], &hardCols[4], &hardCols[5], &hardCols[6]);
