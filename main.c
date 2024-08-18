@@ -90,6 +90,18 @@ void EnterNickname() {
     }
 }
 
+void resetRanking() {
+    FILE *file = fopen("ranking.bin","wb");
+    fwrite(&played, sizeof(int), 1, file);
+    fwrite(&player, sizeof(players), 1, file);
+    fclose(file);
+    printf("\n\nRanking reiniciado com sucesso! Pressione qualquer tecla para continuar: ");
+    getchar();
+    getchar();
+    printf("\n");
+    return;
+}
+
 void printMenu() {
     printf("\n");
     printf("        Number Sums - Made by: Victor Yan        \n");
@@ -109,7 +121,8 @@ void printConfig() {
     printf("################################################\n\n");
     printf("[1] - Dificuldade\n");
     printf("[2] - Sugerir novo nivel\n");
-    printf("[3] - Voltar\n\n");
+    printf("[3] - Resetar ranking\n");
+    printf("[4] - Voltar\n\n");
     printf("################################################\n\n");
     printf("Escolha uma opcao: ");
     return;
@@ -536,6 +549,9 @@ int main() {
                             suggestGame();
                             break;
                         case '3':
+                            settings = 0;
+                            resetRanking();
+                        case '4':
                             settings = 0;
                             break;
                         default:
