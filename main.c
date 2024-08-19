@@ -282,9 +282,10 @@ void playEasyGame() {
                 }
                 break;
             default:
-                printf("\nSelecione uma opção válida! Aperte qualquer tecla para tentar novamente:  ");
+                printf("\n\nSelecione uma opcao valida! Aperte qualquer tecla para tentar novamente:  ");
                 getchar();
                 getchar();
+                printf("\n");
                 break;
         }
     }
@@ -361,9 +362,10 @@ void playMediumGame() {
                     playing = 0;
                 }
             default:
-                printf("\nSelecione uma opção válida! Aperte qualquer tecla para tentar novamente:  ");
+                printf("\n\nSelecione uma opcao valida! Aperte qualquer tecla para tentar novamente:  ");
                 getchar();
                 getchar();
+                printf("\n");
                 break;
         }
     }
@@ -441,9 +443,10 @@ void playHardGame() {
                 }
                 break;
             default:
-                printf("\nSelecione uma opção válida! Aperte qualquer tecla para tentar novamente:  ");
+                printf("\n\nSelecione uma opcao valida! Aperte qualquer tecla para tentar novamente:  ");
                 getchar();
                 getchar();
+                printf("\n");
                 break;
         }
     }
