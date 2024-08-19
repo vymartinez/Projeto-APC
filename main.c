@@ -246,12 +246,13 @@ void playEasyGame() {
         }
         printf("Selecione, respectivamente, a linha e a matriz do numero que voce deseja excluir (L C): ");
         scanf("\n%d %d", &row, &col);
-        if (easyMatrix[row-1][col-1].delete == -1) {
-            printf("\n\nOps, vc já selecionou este espaço! Digite qualquer tecla para continuar: ");
-            getchar();
-            getchar();
-        } else {
-            if (easyMatrix[row-1][col-1].delete == 0) {
+        switch (easyMatrix[row-1][col-1].delete) {
+            case -1:
+                printf("\n\nOps, vc já selecionou este espaço! Digite qualquer tecla para continuar: ");
+                getchar();
+                getchar();
+                break;
+            case 0:
                 easyMatrix[row-1][col-1].delete = -1;
                 correct++;
                 if (correct == easyDeletes) {
@@ -264,20 +265,27 @@ void playEasyGame() {
                 printf("\nVoce acertou, parabens! Aperte qualquer tecla para continuar.\n");
                 getchar();
                 getchar();
-            }
-            if (correct == lastTurn) {
-                lives--;
-                printf("\n\nVoce errou. Ainda restam %d vidas! Aperte qualquer tecla para continuar: ", lives);
+                break;
+            case 1:
+                if (correct == lastTurn) {
+                    lives--;
+                    printf("\n\nVoce errou. Ainda restam %d vidas! Aperte qualquer tecla para continuar: ", lives);
+                    getchar();
+                    getchar();
+                    printf("\n");
+                }
+                if (lives == 0) {
+                    printf("\n\nVoce perdeu! Aperte qualquer tecla para continuar: ");
+                    getchar();
+                    getchar();
+                    playing = 0;
+                }
+                break;
+            default:
+                printf("\nSelecione uma opção válida! Aperte qualquer tecla para tentar novamente:  ");
                 getchar();
                 getchar();
-                printf("\n");
-            }
-            if (lives == 0) {
-                printf("\n\nVoce perdeu! Aperte qualquer tecla para continuar: ");
-                getchar();
-                getchar();
-                playing = 0;
-            }
+                break;
         }
     }
 }
@@ -318,12 +326,13 @@ void playMediumGame() {
         printf("\nVoce ainda tem %d vidas!\n", lives);
         printf("Selecione, respectivamente, a linha e a matriz do numero que voce deseja excluir (L C): ");
         scanf("\n%d %d", &row, &col);
-        if (mediumMatrix[row-1][col-1].delete == -1) {
-            printf("\n\nOps, vc já selecionou este espaço! Digite qualquer tecla para continuar: ");
-            getchar();
-            getchar();
-        } else {
-            if (mediumMatrix[row-1][col-1].delete == 0) {
+        switch (mediumMatrix[row-1][col-1].delete) {
+            case -1:
+                printf("\n\nOps, vc já selecionou este espaço! Digite qualquer tecla para continuar: ");
+                getchar();
+                getchar();
+                break;
+            case 0:
                 mediumMatrix[row-1][col-1].delete = -1;
                 correct++;
                 if (correct == mediumDeletes) {
@@ -336,20 +345,26 @@ void playMediumGame() {
                 printf("\n\nVoce acertou, parabens! Aperte qualquer tecla para continuar.\n");
                 getchar();
                 getchar();
-            }
-            if (correct == lastTurn) {
-                lives--;
-                printf("\n\nVoce errou. Ainda restam %d vidas! Aperte qualquer tecla para continuar: ", lives);
+                break;
+            case 1:
+                if (correct == lastTurn) {
+                    lives--;
+                    printf("\n\nVoce errou. Ainda restam %d vidas! Aperte qualquer tecla para continuar: ", lives);
+                    getchar();
+                    getchar();
+                    printf("\n");
+                }
+                if (lives == 0) {
+                    printf("\n\nVoce perdeu! Aperte qualquer tecla para continuar: ");
+                    getchar();
+                    getchar();
+                    playing = 0;
+                }
+            default:
+                printf("\nSelecione uma opção válida! Aperte qualquer tecla para tentar novamente:  ");
                 getchar();
                 getchar();
-                printf("\n");
-            }
-            if (lives == 0) {
-                printf("\n\nVoce perdeu! Aperte qualquer tecla para continuar: ");
-                getchar();
-                getchar();
-                playing = 0;
-            }
+                break;
         }
     }
 }
@@ -390,12 +405,13 @@ void playHardGame() {
         printf("\nVoce ainda tem %d vidas!\n", lives);
         printf("Selecione, respectivamente, a linha e a matriz do numero que voce deseja excluir (L C): ");
         scanf("\n%d %d", &row, &col);
-        if (hardMatrix[row-1][col-1].delete == -1) {
-            printf("\n\nOps, vc já selecionou este espaço! Digite qualquer tecla para continuar: ");
-            getchar();
-            getchar();
-        } else {
-            if (hardMatrix[row-1][col-1].delete == 0) {
+        switch (hardMatrix[row-1][col-1].delete) {
+            case -1:
+                printf("\n\nOps, vc já selecionou este espaço! Digite qualquer tecla para continuar: ");
+                getchar();
+                getchar();
+                break;
+            case 0:
                 hardMatrix[row-1][col-1].delete = -1;
                 correct++;
                 if (correct == hardDeletes) {
@@ -408,20 +424,27 @@ void playHardGame() {
                 printf("\n\nVoce acertou, parabens! Aperte qualquer tecla para continuar.\n");
                 getchar();
                 getchar();
-            }
-            if (correct == lastTurn) {
-                lives--;
-                printf("\n\nVoce errou. Ainda restam %d vidas! Aperte qualquer tecla para continuar: ", lives);
+                break;
+            case 1:
+                if (correct == lastTurn) {
+                    lives--;
+                    printf("\n\nVoce errou. Ainda restam %d vidas! Aperte qualquer tecla para continuar: ", lives);
+                    getchar();
+                    getchar();
+                    printf("\n");
+                }
+                if (lives == 0) {
+                    printf("\n\nVoce perdeu! Aperte qualquer tecla para continuar: ");
+                    getchar();
+                    getchar();
+                    playing = 0;
+                }
+                break;
+            default:
+                printf("\nSelecione uma opção válida! Aperte qualquer tecla para tentar novamente:  ");
                 getchar();
                 getchar();
-                printf("\n");
-            }
-            if (lives == 0) {
-                printf("\n\nVoce perdeu! Aperte qualquer tecla para continuar: ");
-                getchar();
-                getchar();
-                playing = 0;
-            }
+                break;
         }
     }
 }
