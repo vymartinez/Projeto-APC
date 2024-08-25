@@ -16,9 +16,11 @@ typedef struct matrix {
 } matrix;
 
 int menu, playing, settings, suggesting, ranking, chooseDificulty, played, random, level, row, col,
-correct, lastTurn, lives, easyDeletes, mediumDeletes, hardDeletes, totalEasy, totalMedium, totalHard, addingGame;
+correct, lastTurn, lives, easyDeletes, mediumDeletes, hardDeletes, totalEasy, totalMedium, totalHard, addingGame, block = 0;
 int easyCols[4], easyRows[4], mediumCols[6], mediumRows[6], hardCols[7], hardRows[7];
 int *easyOffsets, *mediumOffsets, *hardOffsets;
+int solved[3] = {0, 0, 0};
+int available[3] = {1, 1, 1};
 matrix easyMatrix[4][4], mediumMatrix[6][6], hardMatrix[7][7];
 int lastEasyOffset, lastMediumOffset, lastHardOffset;
 int dificulty = 1;
@@ -30,6 +32,16 @@ int compare(players *a, players *b) {
         return 1;
     }
     return -1;
+}
+
+void clear(){
+    #if defined(__linux__) || defined(__unix__) || defined(__APPLE__)
+        system("clear");
+    #endif
+
+    #if defined(_WIN32) || defined(_WIN64)
+        system("cls");
+    #endif
 }
 
 void setupGame() {
@@ -64,7 +76,25 @@ void setupGame() {
     fclose(offsets);
 }
 
+void verifyEndgame() {
+    if (solved[0] == totalEasy && solved[1] == totalMedium && solved[2] == totalHard) {
+        printf("\n\nParabens! Voce completou todos os niveis! Voce ZEROU o jogo!!! Aperte qualquer tecla para encerrar o jogo: ");
+        getchar();
+        getchar();
+        block = 1;
+    } else {
+        for (int i = 0; i < 3; i++) {
+            if (available[i] == 1) {
+                dificulty = i+1;
+                break;
+            }
+        }
+    }
+    return;
+}
+
 void EnterNickname() {
+    printf("\nSeja bem-vindo(a) ao meu Number Sums! Vamos comecar!!\n");
     printf("\nDigite seu nome(ate 20 caracteres): ");
     scanf("%s", player.name);
     int len = strlen(player.name);
@@ -131,6 +161,8 @@ void EnterNickname() {
 }
 
 void resetRanking() {
+    player.score = 0;
+    played = 1;
     FILE *file = fopen("ranking.bin","wb");
     fwrite(&played, sizeof(int), 1, file);
     fwrite(&player, sizeof(players), 1, file);
@@ -139,6 +171,7 @@ void resetRanking() {
     getchar();
     getchar();
     printf("\n");
+    setupGame();
     return;
 }
 
@@ -216,15 +249,57 @@ void printRanking() {
     return;
 }
 
+void verifyChoice(int line, int col, int targetLineSum, int lineSum, int targetColSum, int colSum, int dificulty) {
+    if (targetLineSum == lineSum) {
+        printf("\nMuito bem! Voce fechou a linha %d! Aperte qualquer tecla para continuar: ", line);
+        getchar();
+        switch(dificulty) {
+            case 1:
+                easyRows[line-1] = -1;
+                break;
+            case 2:
+                mediumRows[line-1] = -1;
+                break;
+            case 3:
+                hardRows[line-1] = -1;
+                break;
+        }
+    }
+    if (targetColSum == colSum) {
+        printf("\nMuito bem! Voce fechou a coluna %d! Aperte qualquer tecla para continuar: ", col);
+        getchar();
+        switch(dificulty) {
+            case 1:
+                easyCols[col-1] = -1;
+                break;
+            case 2:
+                mediumCols[col-1] = -1;
+                break;
+            case 3:
+                hardCols[col-1] = -1;
+                break;
+        }
+    }
+    return;
+}
+
 void playEasyGame() {
     while (playing) {
         lastTurn = correct;
         printf("\n X | ");
         for (int i = 0; i < 4; i++) {
             if (i == 3) {
-                printf("%2d\n", easyCols[i]);
+                if (easyCols[i] == -1) {
+                    printf("   | \n");
+                } else {
+                    printf("%2d\n", easyCols[i]);
+                }
             } else {
-                printf("%2d | ", easyCols[i]);
+                if (easyCols[i] == -1) {
+                    printf("   | ");
+                } else {
+                    printf("%2d | ", easyCols[i]);
+                }
             }
         }
         for (int i = 0; i < 22; i++) {
@@ -232,7 +307,11 @@ void playEasyGame() {
         }
         printf("\n");
         for (int i = 0; i < 4; i++) {
-            printf("%2d | ", easyRows[i]);
+            if (easyRows[i] == -1) {
+                printf("   | ");
+            } else {
+                printf("%2d | ", easyRows[i]);
+            }
             for (int j = 0; j < 4; j++) {
                 if (j == 3) {
                     if (easyMatrix[i][j].delete == -1) {
@@ -258,7 +337,7 @@ void playEasyGame() {
         scanf("\n%d %d", &row, &col);
         switch (easyMatrix[row-1][col-1].delete) {
             case -1:
-                printf("\n\nOps, vc já selecionou este espaço! Digite qualquer tecla para continuar: ");
+                printf("\n\nOps, vc ja selecionou este espaco! Digite qualquer tecla para continuar: ");
                 getchar();
                 getchar();
                 break;
@@ -275,6 +354,19 @@ void playEasyGame() {
                 printf("\nVoce acertou, parabens! Aperte qualquer tecla para continuar.\n");
                 getchar();
                 getchar();
+                int lineSum, colSum;
+                lineSum = colSum = 0;
+                for (int i = 0; i < 4; i++) {
+                    if (easyMatrix[i][col-1].delete != -1) {
+                        colSum += easyMatrix[i][col-1].number;
+                    }
+                }
+                for (int i = 0; i < 4; i++) {
+                    if (easyMatrix[row-1][i].delete != -1) {
+                        lineSum += easyMatrix[row-1][i].number;
+                    }
+                }
+                verifyChoice(row, col, easyRows[row-1], lineSum, easyCols[col-1], colSum, 1);
                 break;
             case 1:
                 if (correct == lastTurn) {
@@ -298,6 +390,7 @@ void playEasyGame() {
                 printf("\n");
                 break;
         }
+        clear();
     }
 }
 
@@ -307,9 +400,17 @@ void playMediumGame() {
         printf("\n X | ");
         for (int i = 0; i < 6; i++) {
             if (i == 5) {
-                printf("%2d\n", mediumCols[i]);
+                if (mediumCols[i] == -1) {
+                    printf("   | \n");
+                } else {
+                    printf("%2d\n", mediumCols[i]);
+                }
             } else {
-                printf("%2d | ", mediumCols[i]);
+                if (mediumCols[i] == -1) {
+                    printf("   | ");
+                } else {
+                    printf("%2d | ", mediumCols[i]);
+                }
             }
         }
         for (int i = 0; i < 32; i++) {
@@ -317,7 +418,11 @@ void playMediumGame() {
         }
         printf("\n");
         for (int i = 0; i < 6; i++) {
-            printf("%2d | ", mediumRows[i]);
+            if (mediumRows[i] == -1) {
+                printf("   | ");
+            } else {
+                printf("%2d | ", mediumRows[i]);
+            }
             for (int j = 0; j < 6; j++) {
                 if (j == 5) {
                     if (mediumMatrix[i][j].delete == -1) {
@@ -339,7 +444,7 @@ void playMediumGame() {
         scanf("\n%d %d", &row, &col);
         switch (mediumMatrix[row-1][col-1].delete) {
             case -1:
-                printf("\n\nOps, vc já selecionou este espaço! Digite qualquer tecla para continuar: ");
+                printf("\n\nOps, vc ja selecionou este espaco! Digite qualquer tecla para continuar: ");
                 getchar();
                 getchar();
                 break;
@@ -349,13 +454,25 @@ void playMediumGame() {
                 if (correct == mediumDeletes) {
                     printf("\n\nVoce ganhou! Parabens! Aperte qualquer tecla para continuar: ");
                     getchar();
-                    getchar();
                     playing = 0;
                     return;
                 }
                 printf("\n\nVoce acertou, parabens! Aperte qualquer tecla para continuar.\n");
                 getchar();
                 getchar();
+                int lineSum, colSum;
+                lineSum = colSum = 0;
+                for (int i = 0; i < 6; i++) {
+                    if (mediumMatrix[i][col-1].delete != -1) {
+                        colSum += mediumMatrix[i][col-1].number;
+                    }
+                }
+                for (int i = 0; i < 6; i++) {
+                    if (mediumMatrix[row-1][i].delete != -1) {
+                        lineSum += mediumMatrix[row-1][i].number;
+                    }
+                }
+                verifyChoice(row, col, mediumRows[row-1], lineSum, mediumCols[col-1], colSum, 2);
                 break;
             case 1:
                 if (correct == lastTurn) {
@@ -378,6 +495,7 @@ void playMediumGame() {
                 printf("\n");
                 break;
         }
+        clear();
     }
 }
 
@@ -387,9 +505,17 @@ void playHardGame() {
         printf("\n X | ");
         for (int i = 0; i < 7; i++) {
             if (i == 6) {
-                printf("%2d\n", hardCols[i]);
+                if (hardCols[i] == -1) {
+                    printf("   | \n");
+                } else {
+                    printf("%2d\n", hardCols[i]);
+                }
             } else {
-                printf("%2d | ", hardCols[i]);
+                if (hardCols[i] == -1) {
+                    printf("   | ");
+                } else {
+                    printf("%2d | ", hardCols[i]);
+                }
             }
         }
         for (int i = 0; i < 37; i++) {
@@ -397,7 +523,11 @@ void playHardGame() {
         }
         printf("\n");
         for (int i = 0; i < 7; i++) {
-            printf("%2d | ", hardRows[i]);
+            if (hardRows[i] == -1) {
+                printf("   | ");
+            } else {
+                printf("%2d | ", hardRows[i]);
+            }
             for (int j = 0; j < 7; j++) {
                 if (j == 6) {
                     if (hardMatrix[i][j].delete == -1) {
@@ -419,7 +549,7 @@ void playHardGame() {
         scanf("\n%d %d", &row, &col);
         switch (hardMatrix[row-1][col-1].delete) {
             case -1:
-                printf("\n\nOps, vc já selecionou este espaço! Digite qualquer tecla para continuar: ");
+                printf("\n\nOps, vc ja selecionou este espaco! Digite qualquer tecla para continuar: ");
                 getchar();
                 getchar();
                 break;
@@ -436,6 +566,19 @@ void playHardGame() {
                 printf("\n\nVoce acertou, parabens! Aperte qualquer tecla para continuar.\n");
                 getchar();
                 getchar();
+                int lineSum, colSum;
+                lineSum = colSum = 0;
+                for (int i = 0; i < 7; i++) {
+                    if (hardMatrix[i][col-1].delete != -1) {
+                        colSum += hardMatrix[i][col-1].number;
+                    }
+                }
+                for (int i = 0; i < 7; i++) {
+                    if (hardMatrix[row-1][i].delete != -1) {
+                        lineSum += hardMatrix[row-1][i].number;
+                    }
+                }
+                verifyChoice(row, col, hardRows[row-1], lineSum, hardCols[col-1], colSum, 3);
                 break;
             case 1:
                 if (correct == lastTurn) {
@@ -459,6 +602,7 @@ void playHardGame() {
                 printf("\n");
                 break;
         }
+        clear();
     }
 }
 
@@ -1412,6 +1556,7 @@ void Play() {
     }
     if (lives != 0) {
         player.score += 100 * dificulty;
+        solved[dificulty-1]++;
         FILE *file = fopen("ranking.bin", "rb");
         fread(&played, sizeof(int), 1, file);
         players ranking[played];
@@ -1429,6 +1574,42 @@ void Play() {
             fwrite(&ranking[i], sizeof(players), 1, file2);
         }
         fclose(file2);
+        int newRandom;
+        switch(dificulty) {
+            case 1:
+                if (solved[dificulty-1] == totalEasy) {
+                    available[dificulty-1] = 0;
+                    printf("\nParabens! Voce completou todas as fases faceis! Aperte qualquer tecla para continuar: \n");
+                    getchar();
+                    verifyEndgame();
+                } else {
+                    newRandom = random+2 < totalEasy ? random+1 : random-1;
+                    easyOffsets[random] = easyOffsets[newRandom];
+                }
+                break;
+            case 2:
+                if (solved[dificulty-1] == totalMedium) {
+                    available[dificulty-1] = 0;
+                    printf("\nParabens! Voce completou todas as fases medias! Aperte qualquer tecla para continuar: \n");
+                    getchar();
+                    verifyEndgame();
+                } else {
+                    newRandom = random+2 < totalMedium ? random+1 : random-1;
+                    mediumOffsets[random] = mediumOffsets[newRandom];
+                }
+                break;
+            case 3:
+                if (solved[dificulty-1] == totalHard) {
+                    available[dificulty-1] = 0;
+                    printf("\nParabens! Voce completou todas as fases dificeis! Aperte qualquer tecla para continuar: \n");
+                    getchar();
+                    verifyEndgame();
+                } else {
+                    newRandom = random+2 < totalHard ? random+1 : random-1;
+                    hardOffsets[random] = hardOffsets[newRandom];
+                }
+                break;
+        }
     }
 }
 
@@ -1437,17 +1618,21 @@ int main() {
     setupGame();
     char menuOption;
     EnterNickname();
-    while (menu) {
+    while (menu && !block) {
+        clear();
         lives = 5;
         printMenu();
         scanf("\n%c", &menuOption);
         switch(menuOption) {
             case '1':
+                clear();
                 Play();
                 break;
             case '2':
+                clear();
                 settings = 1;
                 while (settings) {
+                    clear();
                     printConfig();
                     scanf("\n%c", &menuOption);
                     switch(menuOption) {
@@ -1455,18 +1640,37 @@ int main() {
                             settings = 0;
                             chooseDificulty = 1;
                             while (chooseDificulty) {
+                                clear();
                                 printDificulty();
                                 scanf("\n%c", &menuOption);
                                 switch(menuOption) {
                                     case '1':
+                                        if (totalEasy != solved[0]) {
+                                            printf("\nVoce ja completou todas as fases faceis! Aperte qualquer tecla para continuar: \n");
+                                            getchar();
+                                            getchar();
+                                            break;
+                                        }
                                         dificulty = 1;
                                         chooseDificulty = 0;
                                         break;
                                     case '2':
+                                        if (totalMedium != solved[1]) {
+                                            printf("\nVoce ja completou todas as fases medias! Aperte qualquer tecla para continuar: \n");
+                                            getchar();
+                                            getchar();
+                                            break;
+                                        }
                                         dificulty = 2;
                                         chooseDificulty = 0;
                                         break;
                                     case '3':
+                                        if (totalHard != solved[2]) {
+                                            printf("\nVoce ja completou todas as fases dificeis! Aperte qualquer tecla para continuar: \n");
+                                            getchar();
+                                            getchar();
+                                            break;
+                                        }
                                         dificulty = 3;
                                         chooseDificulty = 0;
                                         break;
@@ -1484,16 +1688,20 @@ int main() {
                             settings = 0;
                             suggesting = 1;
                             while (suggesting) {
+                                clear();
                                 printSuggestLevel();
                                 scanf("\n%c", &menuOption);
                                 switch(menuOption) {
                                     case '1':
+                                        clear();
                                         suggestGame(1);
                                         break;
                                     case '2':
+                                        clear();
                                         suggestGame(2);
                                         break;
                                     case '3':
+                                        clear();
                                         suggestGame(3);
                                         break;
                                     case '4':
@@ -1535,4 +1743,5 @@ int main() {
                 break;
         }
     }
+    return 0;
 }
