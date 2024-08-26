@@ -104,15 +104,17 @@ void verifyEndgame() {
 void EnterNickname() {
     printf("\nSeja bem-vindo(a) ao meu Number Sums! Vamos comecar!!\n");
     printf("\nDigite seu nome(ate 20 caracteres): ");
-    scanf("%s", player.name);
+    fgets(player.name, 25, stdin);
     int len = strlen(player.name);
+    player.name[len-1] = '\0';
     if (len > 20) {
         printf("\nNome invalido! Digite um nome valido, por favor.\n");
         EnterNickname();
         return;
     }
     for (int i = 0; i < len; i++) {
-        if (!isalpha(player.name[i]) && player.name[i] != ' ') { 
+        if (!isalpha(player.name[i]) && player.name[i] != ' ' && player.name[i] != '\0') { 
+            printf("%s\n", player.name);
             printf("\nNome invalido! Digite um nome valido, por favor.\n");
             EnterNickname();
             return;
@@ -141,12 +143,12 @@ void EnterNickname() {
                 while (continuation) {
                     printf("\no usuario '%s' ja existe. Deseja continuar? (S/N): ", player.name);
                     scanf("\n%c", &answer);
-                    if (answer == 'S') {
+                    if (answer == 'S' || answer == 's') {
                         continuation = 0;
                         menu = 1;
                         player.score = allPlayers[i].score;
                         return;
-                    } else if (answer == 'N') {
+                    } else if (answer == 'N' || answer == 'n') {
                         EnterNickname();
                         return;
                     }
@@ -252,76 +254,18 @@ void printRanking() {
         fread(&played, sizeof(int), 1, file);
         for (int i = 1; i <= 10 && i <= played; i++) {
             fread(&rankingPlayer, sizeof(players), 1, file);
-            printf("%d. %s - PONTOS: %d\n", i, rankingPlayer.name, rankingPlayer.score);
+            printf("%d. %s", i, rankingPlayer.name);
+            int length = strlen(rankingPlayer.name);
+            for (int i = 0; i < 30-length; i++) {
+                printf(" ");
+            }
+            printf("- PONTOS: %5d\n", rankingPlayer.score);
         }
         fclose(file);
         printf("\n################################################\n\n");
     }
     printf("Pressione [Enter] para voltar ao menu: ");
     return;
-}
-
-void lastInstruction() {
-    while (instructions) {
-        clear();
-        printf("\n");
-        printf("                          Instrucoes                      \n");
-        printf("###############################################################\n\n");
-        printf("PONTUACAO: Ao resolver uma fase facil, voce recebe 100 pontos.\n");
-        printf("Ao resolver uma fase media, voce recebe 200 pontos.\n");
-        printf("Ao resolver uma fase dificil, voce recebe 300 pontos.\n");
-        printf("Ao resolver todas as fases, voce recebe um bonus de 500 pontos.\n\n");
-        printf("Esse eh o fim do tutorial. Deseja ver novamente? (S/N): ");
-        getchar();
-        while (instructions) {
-            char c = getchar();
-            switch (toupper(c)) {
-                case 'S':
-                    return;
-                    break;
-                case 'N':
-                    instructions = 0;
-                    menu = 1;
-                    break;
-                default:
-                    printf("\n\nOpcao invalida. Selecione uma opcao valida, por favor.\n");
-                    break;
-            }
-        }
-    }
-}
-
-void secondInstruction() {
-    while (instructions) {
-        clear();
-        printf("\n");
-        printf("                          Instrucoes                      \n");
-        printf("###############################################################\n\n");
-        printf("COMO JOGAR: ao receber a grade, selecione a linha e a coluna,\n");
-        printf("respectivamente, do numero que voce deseja eliminar.\n");
-        printf("Ao acertar a resposta ou fechar uma linha ou coluna com as somas\n");
-        printf("corretas, os numeros desaparecerao. Voce possui 5 vidas e,\n");
-        printf("ao perde-las, voce perde o jogo.\n\n");
-        printf("Aperte [Enter] para continuar ou 'E' para sair: ");
-        char c = getchar();
-        while (c != '\n' && tolower(c) != 'e') {
-            c = getchar();
-        }
-        switch (c) {
-            case '\n':
-                lastInstruction();
-                return;
-                break;
-            case 'e':
-                instructions = 0;
-                menu = 1;
-                break;
-            case 'E':
-                instructions = 0;
-                menu = 1;
-                break;
-        }
-    }
 }
 
 void printInstructions() {
@@ -340,16 +284,63 @@ void printInstructions() {
         }
         switch (c) {
             case '\n':
-                secondInstruction();
                 break;
-            case 'e':
+            case 'e' | 'E':
                 instructions = 0;
                 menu = 1;
+                return;
                 break;
-            case 'E':
+        }
+        clear();
+        printf("\n");
+        printf("                          Instrucoes                      \n");
+        printf("###############################################################\n\n");
+        printf("COMO JOGAR: ao receber a grade, selecione a linha e a coluna,\n");
+        printf("respectivamente, do numero que voce deseja eliminar.\n");
+        printf("Ao acertar a resposta ou fechar uma linha ou coluna com as somas\n");
+        printf("corretas, os numeros desaparecerao. Voce possui 5 vidas e,\n");
+        printf("ao perde-las, voce perde o jogo.\n\n");
+        printf("Aperte [Enter] para continuar ou 'E' para sair: ");
+        c = getchar();
+        while (c != '\n' && tolower(c) != 'e') {
+            c = getchar();
+        }
+        switch (c) {
+            case '\n':
+                break;
+            case 'e' | 'E':
                 instructions = 0;
                 menu = 1;
+                return;
                 break;
+        }
+        clear();
+        printf("\n");
+        printf("                          Instrucoes                      \n");
+        printf("###############################################################\n\n");
+        printf("PONTUACAO: Ao resolver uma fase facil, voce recebe 100 pontos.\n");
+        printf("Ao resolver uma fase media, voce recebe 200 pontos.\n");
+        printf("Ao resolver uma fase dificil, voce recebe 300 pontos.\n");
+        printf("Ao resolver todas as fases, voce recebe um bonus de 500 pontos.\n\n");
+        printf("Esse eh o fim do tutorial. Deseja ver novamente? (S/N): ");
+        int verification = 1;
+        while (verification) {
+            scanf("\n%c", &c);
+            switch (c) {
+                case 'S' | 's':
+                    verification = 0;
+                    getchar();
+                    break;
+                case 'N' | 'n':
+                    verification = 0;
+                    instructions = 0;
+                    menu = 1;
+                    return;
+                    break;
+                default:
+                    printf("\n\nOpcao invalida. Selecione uma opcao valida, por favor.\n");
+                    break;
+            }
         }
     }
     return;
@@ -500,155 +491,152 @@ void playGame(int size) {
 void verifySuggestion(int choice, int size) {
     int sum;
     char answer;
-    switch (choice) {
-        case 1:
-            for (int i = 0; i < size; i++) {
-                sum = 0;
-                for (int j = 0; j < size; j++) {
-                    if (mainMatrix[i][j].delete == 1) {
-                        sum += mainMatrix[i][j].number;
-                    }
-                }
-                if (sum != rowsSum[i]) {
-                    printf("\nA soma dos numeros da linha %d nao corresponde a resposta (%d). Tente novamente.\n", i+1, rowsSum[i]);
-                    printf("\nVoce deseja alterar o numero %d? (S/N): ", rowsSum[i]);
-                    scanf("\n%c", &answer);
-                    printf("\n");
-                    switch (answer) {
-                        case 'S':
-                            printf("\nDigite um novo valor para esse numero: ");
-                            scanf("\n%d", &rowsSum[i]);
-                            verifySuggestion(choice, size);
-                            return;
-                            break;
-                        case 'N':
-                            break;
-                        default:
-                            printf("\nOpcao invalida! Digite S para sim ou N para nao.\n");
-                            break;
-                    }
-                    for (int k = 0; k < size; k++) {
-                        printf("\nVoce deseja alterar o numero %d? (S/N): ", mainMatrix[i][k].number);
+    for (int i = 0; i < size; i++) {
+        sum = 0;
+        for (int j = 0; j < size; j++) {
+            if (mainMatrix[i][j].delete == 1) {
+                sum += mainMatrix[i][j].number;
+            }
+        }
+        if (sum != rowsSum[i]) {
+            printf("\nA soma dos numeros da linha %d nao corresponde a resposta (%d). Tente novamente.\n", i+1, rowsSum[i]);
+            printf("\nVoce deseja alterar o numero %d? (S/N): ", rowsSum[i]);
+            scanf("\n%c", &answer);
+            printf("\n");
+            switch (answer) {
+                case 'S' | 's':
+                    printf("\nDigite um novo valor para esse numero: ");
+                    scanf("\n%d", &rowsSum[i]);
+                    verifySuggestion(choice, size);
+                    return;
+                    break;
+                case 'N' | 'n':
+                    break;
+                default:
+                    printf("\nOpcao invalida! Digite S para sim ou N para nao.\n");
+                    break;
+            }
+            for (int k = 0; k < size; k++) {
+                printf("\nVoce deseja alterar o numero %d? (S/N): ", mainMatrix[i][k].number);
+                scanf("\n%c", &answer);
+                printf("\n");
+                switch (answer) {
+                    case 'S' | 's':
+                        printf("\nVoce deseja alterar o valor ou se deve, ou nao, ser deletado? (V/D): ");
                         scanf("\n%c", &answer);
                         printf("\n");
                         switch (answer) {
-                            case 'S':
-                                printf("\nVoce deseja alterar o valor ou se deve, ou nao, ser deletado? (V/D): ");
+                            case 'V' | 'v':
+                                printf("\nDigite um novo valor para esse numero: ");
+                                scanf("\n%d", &mainMatrix[i][k].number);
+                                verifySuggestion(choice, size);
+                                return;
+                                break;
+                            case 'D' | 'd':
+                                printf("\nEste numero deve ser excluido? (S/N): ");
                                 scanf("\n%c", &answer);
                                 printf("\n");
                                 switch (answer) {
-                                    case 'V':
-                                        printf("\nDigite um novo valor para esse numero: ");
-                                        scanf("\n%d", &mainMatrix[i][k].number);
+                                    case 'S' | 's':
+                                        mainMatrix[i][k].delete = 0;
                                         verifySuggestion(choice, size);
-                                        return;
                                         break;
-                                    case 'D':
-                                        printf("\nEste numero deve ser excluido? (S/N): ");
-                                        scanf("\n%c", &answer);
-                                        printf("\n");
-                                        switch (answer) {
-                                            case 'S':
-                                                mainMatrix[i][k].delete = 0;
-                                                verifySuggestion(choice, size);
-                                                break;
-                                            case 'N':
-                                                mainMatrix[i][k].delete = 1;
-                                                 verifySuggestion(choice, size);
-                                                break;
-                                            default:
-                                                printf("\nOpcao invalida! Digite S para sim ou N para nao.\n");
-                                                break;
-                                        }
+                                    case 'N' | 'n':
+                                        mainMatrix[i][k].delete = 1;
+                                            verifySuggestion(choice, size);
+                                        break;
                                     default:
-                                        printf("\nOpcao invalida! Digite V para alterar o valor ou D para deletar o numero.\n");
+                                        printf("\nOpcao invalida! Digite S para sim ou N para nao.\n");
                                         break;
                                 }
-                                break;
-                            case 'N':
-                                break;
                             default:
-                                printf("\nOpcao invalida! Digite S para sim ou N para nao.\n");
+                                printf("\nOpcao invalida! Digite V para alterar o valor ou D para deletar o numero.\n");
                                 break;
                         }
-                    }
+                        break;
+                    case 'N' | 'n':
+                        break;
+                    default:
+                        printf("\nOpcao invalida! Digite S para sim ou N para nao.\n");
+                        break;
                 }
             }
-            for (int i = 0; i < size; i++) {
-                sum = 0;
-                for (int j = 0; j < size; j++) {
-                    if (mainMatrix[j][i].delete == 1) {
-                        sum += mainMatrix[j][i].number;
-                    }
-                }
-                if (sum != colsSum[i]) {
-                    printf("\nA soma dos numeros da linha %d nao corresponde a resposta (%d). Tente novamente.\n", i+1, colsSum[i]);
-                    printf("\nVoce deseja alterar o numero %d? (S/N): ", colsSum[i]);
-                    scanf("\n%c", &answer);
-                    printf("\n");
-                    switch (answer) {
-                        case 'S':
-                            printf("\nDigite um novo valor para esse numero: ");
-                            scanf("\n%d", &colsSum[i]);
-                            verifySuggestion(choice, size);
-                            return;
-                            break;
-                        case 'N':
-                            break;
-                        default:
-                            printf("\nOpcao invalida! Digite S para sim ou N para nao.\n");
-                            break;
-                    }
-                    for (int k = 0; k < size; k++) {
-                        printf("\nVoce deseja alterar o numero %d? (S/N): ", mainMatrix[k][i].number);
-                        scanf("\n%c", &answer);
-                        printf("\n");
-                        switch (answer) {
-                            case 'S':
-                                printf("\nVoce deseja alterar o valor ou se deve, ou nao, ser deletado? (V/D): ");
-                                scanf("\n%c", &answer);
-                                printf("\n");
-                                switch (answer) {
-                                    case 'V':
-                                        printf("\nDigite um novo valor para esse numero: ");
-                                        scanf("\n%d", &mainMatrix[k][i].number);
-                                        verifySuggestion(choice, size);
-                                        return;
-                                        break;
-                                    case 'D':
-                                        printf("\nEste numero deve ser excluido? (S/N): ");
-                                        scanf("\n%c", &answer);
-                                        printf("\n");
-                                        switch (answer) {
-                                            case 'S':
-                                                mainMatrix[k][i].delete = 0;
-                                                verifySuggestion(choice, size);
-                                                break;
-                                            case 'N':
-                                                mainMatrix[k][i].delete = 1;
-                                                verifySuggestion(choice, size);
-                                                break;
-                                            default:
-                                                printf("\nOpcao invalida! Digite S para sim ou N para nao.\n");
-                                                break;
-                                        }
-                                    default:
-                                        printf("\nOpcao invalida! Digite V para alterar o valor ou D para deletar o numero.\n");
-                                        break;
-                                }
-                                break;
-                            case 'N':
-                                break;
-                            default:
-                                printf("\nOpcao invalida! Digite S para sim ou N para nao.\n");
-                                break;
-                        }
-                    }
-                }
-            }
-            addingGame = 1;
-            return;
+        }
     }
+    for (int i = 0; i < size; i++) {
+        sum = 0;
+        for (int j = 0; j < size; j++) {
+            if (mainMatrix[j][i].delete == 1) {
+                sum += mainMatrix[j][i].number;
+            }
+        }
+        if (sum != colsSum[i]) {
+            printf("\nA soma dos numeros da linha %d nao corresponde a resposta (%d). Tente novamente.\n", i+1, colsSum[i]);
+            printf("\nVoce deseja alterar o numero %d? (S/N): ", colsSum[i]);
+            scanf("\n%c", &answer);
+            printf("\n");
+            switch (answer) {
+                case 'S' | 's':
+                    printf("\nDigite um novo valor para esse numero: ");
+                    scanf("\n%d", &colsSum[i]);
+                    verifySuggestion(choice, size);
+                    return;
+                    break;
+                case 'N' | 'n':
+                    break;
+                default:
+                    printf("\nOpcao invalida! Digite S para sim ou N para nao.\n");
+                    break;
+            }
+            for (int k = 0; k < size; k++) {
+                printf("\nVoce deseja alterar o numero %d? (S/N): ", mainMatrix[k][i].number);
+                scanf("\n%c", &answer);
+                printf("\n");
+                switch (answer) {
+                    case 'S' | 's':
+                        printf("\nVoce deseja alterar o valor ou se deve, ou nao, ser deletado? (V/D): ");
+                        scanf("\n%c", &answer);
+                        printf("\n");
+                        switch (answer) {
+                            case 'V' | 'v':
+                                printf("\nDigite um novo valor para esse numero: ");
+                                scanf("\n%d", &mainMatrix[k][i].number);
+                                verifySuggestion(choice, size);
+                                return;
+                                break;
+                            case 'D' | 'd':
+                                printf("\nEste numero deve ser excluido? (S/N): ");
+                                scanf("\n%c", &answer);
+                                printf("\n");
+                                switch (answer) {
+                                    case 'S' | 's':
+                                        mainMatrix[k][i].delete = 0;
+                                        verifySuggestion(choice, size);
+                                        break;
+                                    case 'N' | 'n':
+                                        mainMatrix[k][i].delete = 1;
+                                        verifySuggestion(choice, size);
+                                        break;
+                                    default:
+                                        printf("\nOpcao invalida! Digite S para sim ou N para nao.\n");
+                                        break;
+                                }
+                            default:
+                                printf("\nOpcao invalida! Digite V para alterar o valor ou D para deletar o numero.\n");
+                                break;
+                        }
+                        break;
+                    case 'N' | 'n':
+                        break;
+                    default:
+                        printf("\nOpcao invalida! Digite S para sim ou N para nao.\n");
+                        break;
+                }
+            }
+        }
+    }
+    addingGame = 1;
+    return;
 }
 
 void suggestGame(int choice, int size) {
@@ -692,7 +680,7 @@ void suggestGame(int choice, int size) {
                         }
                     }
                 }
-                for (int i = 0; i < traces[dificulty-1]; i++) {
+                for (int i = 0; i < traces[choice-1]; i++) {
                     printf("-");
                 }
                 printf("\n");
@@ -704,13 +692,13 @@ void suggestGame(int choice, int size) {
                     }
                     for (int j = 0; j < size; j++) {
                         if (j == size-1) {
-                            if (mainMatrix[i][j].delete == -1) {
+                            if (mainMatrix[i][j].delete == -1 || mainMatrix[i][j].delete == 0) {
                                 printf("  \n");
                             } else {
                                 printf("%2d\n", mainMatrix[i][j].number);
                             }
                         } else {
-                            if (mainMatrix[i][j].delete == -1) {
+                            if (mainMatrix[i][j].delete == -1 || mainMatrix[i][j].delete == 0) {
                                 printf("     ");
                             } else {
                                 printf("%2d   ", mainMatrix[i][j].number);
@@ -728,16 +716,17 @@ void suggestGame(int choice, int size) {
                     scanf("\n%c", &answer);
                     printf("\n");
                     switch (answer) {
-                        case 'S':
+                        case 'S' | 's':
                             mainMatrix[i][j].delete = 0;
                             break;
-                        case 'N':
+                        case 'N' | 'n':
                             mainMatrix[i][j].delete = 1;
                             break;
                         default:
                             printf("\nOpcao invalida! Digite S para sim ou N para nao.\n");
                             break;
                     }
+                    clear();
                     break;
                 }
                 clear();
@@ -850,7 +839,12 @@ void suggestGame(int choice, int size) {
         addingGame = 0;
         break;
     }
-    printf("\nNova fase adicionada com sucesso!\n");
+    printf("\nNova fase adicionada com sucesso! Aperte enter para continuar: \n");
+    getchar();
+    char c = getchar();
+    while (c != '\n') {
+        c = getchar();
+    }
     suggesting = 0;
     menu = 1;
 }
