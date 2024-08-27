@@ -374,7 +374,7 @@ void playGame(int size) {
         for (int i = 0; i < size; i++) {
             if (i == size-1) {
                 if (colsSum[i] == -1) {
-                    printf("   | \n");
+                    printf("   \n");
                 } else {
                     printf("%2d\n", colsSum[i]);
                 }
@@ -668,7 +668,7 @@ void suggestGame(int choice, int size) {
                 for (int i = 0; i < size; i++) {
                     if (i == size-1) {
                         if (colsSum[i] == -1) {
-                            printf("   | \n");
+                            printf("   \n");
                         } else {
                             printf("%2d\n", colsSum[i]);
                         }
@@ -1051,6 +1051,7 @@ int main() {
                                     case '1':
                                         if (totals[0] == solved[0]) {
                                             printf("\nVoce ja completou todas as fases faceis! Aperte [Enter] para continuar: \n");
+                                            getchar();
                                             char c = getchar();
                                             while (c != '\n') {
                                                 c = getchar();
@@ -1063,6 +1064,7 @@ int main() {
                                     case '2':
                                         if (totals[1] == solved[1]) {
                                             printf("\nVoce ja completou todas as fases medias! Aperte [Enter] para continuar: \n");
+                                            getchar();
                                             char c = getchar();
                                             while (c != '\n') {
                                                 c = getchar();
@@ -1075,6 +1077,7 @@ int main() {
                                     case '3':
                                         if (totals[2] == solved[2]) {
                                             printf("\nVoce ja completou todas as fases dificeis! Aperte [Enter] para continuar: \n");
+                                            getchar();
                                             char c = getchar();
                                             while (c != '\n') {
                                                 c = getchar();
@@ -1125,6 +1128,7 @@ int main() {
                             }
                             break;
                         case '3':
+                            clear();
                             settings = 0;
                             resetRanking();
                         case '4':
@@ -1139,6 +1143,7 @@ int main() {
             case '3':
                 ranking = 1;
                 while (ranking) {
+                    clear();
                     printRanking();
                     getchar();
                     char c = getchar();
