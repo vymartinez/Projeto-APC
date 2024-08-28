@@ -623,9 +623,9 @@ void verifySuggestion(int choice, int size) {//verifica se a sugestão do jogado
 }
 
 void suggestGame(int choice, int size) {
-    memset(mainMatrix, 2, sizeof(mainMatrix));
-    memset(colsSum, 2, sizeof(colsSum));
-    memset(rowsSum, 2, sizeof(rowsSum));
+    memset(mainMatrix, -1, sizeof(mainMatrix));
+    memset(colsSum, -1, sizeof(colsSum));
+    memset(rowsSum, -1, sizeof(rowsSum));
     addingGame = 0;
     for (int i = 0; i < size; i++) {
         while (suggesting) {    
@@ -695,6 +695,7 @@ void suggestGame(int choice, int size) {
                     printf("\nNumero invalido! Digite um numero entre 0 e 9, por favor.\n");
                 } else {
                     printf("\nEste numero deve ser excluido? (S/N): ");
+                    fgets(answer, 100, stdin);
                     fgets(answer, 100, stdin);
                     printf("\n");
                     switch (answer[0]) {
@@ -823,6 +824,7 @@ void suggestGame(int choice, int size) {
         break;
     }
     printf("\nNova fase adicionada com sucesso! Aperte enter para continuar: \n");
+    fgets(answer, 100, stdin);
     fgets(answer, 100, stdin);
     suggesting = 0;
     menu = 1;
