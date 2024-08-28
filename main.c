@@ -1,3 +1,6 @@
+//Nome: Victor Yan Martinez
+//Matrícula: 241032994
+
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
@@ -18,17 +21,18 @@ typedef struct matrix {
 //LOOPS
 int menu, playing, settings, suggesting, ranking, chooseDificulty, played, addingGame, block, instructions;
 //VARIABLES
-int correct, lastTurn, lives, random, level, row, col, lastOffset, deletes;
-int colsSum[7], rowsSum[7];
-int totals[3];
-int *easyOffsets, *mediumOffsets, *hardOffsets;
-int solved[3];
-int traces[3] = {22, 32, 37};
-int available[3];
+int correct, lastTurn, lives, random, row, col, lastOffset, deletes;
+int colsSum[7], rowsSum[7];//somas das linhas e colunas
+int totals[3];//numero de fases de cada dificuldade
+int *easyOffsets, *mediumOffsets, *hardOffsets;//inicio de cada uma das fases
+int solved[3];//numero de fases resolvidas de cada dificuldade
+int traces[3] = {22, 32, 37};//quantidade de traços da matriz de acordo com a dificuldade
+int available[3];//dificuldades disponiveis
 matrix mainMatrix[7][7];
 int dificulty = 1;
 char modes[3][10] = {"Facil", "Medio", "Dificil"};
 players player;
+char answer[100];//respostas de inputs dos jogadores
 
 int compare(players *a, players *b) {
     if (a->score < b->score) {
@@ -47,7 +51,7 @@ void clear(){
     #endif
 }
 
-void setupGame() {
+void setupGame() {//Lê os offsets dos arquivos e armazenar em um vetor
     FILE *offsets = fopen("offsets.txt", "r");
     fscanf(offsets, "%d\n", &totals[0]);
     easyOffsets = (int*)calloc(totals[0], sizeof(int));
@@ -81,14 +85,16 @@ void setupGame() {
     solved[0] = solved[1] = solved[2] = 0;
 }
 
-void verifyEndgame() {
+void verifyEndgame() {//verifica se zerou todas as fases, se não só troca de dificuldade
     if (solved[0] == totals[0] && solved[1] == totals[1] && solved[2] == totals[2]) {
-        printf("\n\nParabens! Voce completou todos os niveis! Voce ZEROU o jogo!!! Aperte [Enter] para encerrar o jogo: ");
-        getchar();
-        char c = getchar();
-        while (c != '\n') {
-            c = getchar();
-        }
+        printf("\n");
+        printf("#   #  #####  #####  #####       #   #  #####  #   # ##### ##### #   #    #\n");
+        printf("#   #  #   #  #      #           #   #  #      ##  # #     #     #   #    #\n");
+        printf("#   #  #   #  #      #####       #   #  #####  # # # #     ##### #   #    #\n");
+        printf(" # #   #   #  #      #            # #   #      #  ## #     #     #   #     \n");
+        printf("  #    #####  #####  #####         #    #####  #   # ##### ##### #####    #\n");
+        printf("\nParabens! Voce completou todos os niveis! Voce ZEROU o jogo!!! Aperte [Enter] para encerrar o jogo: \n");
+        fgets(answer, 100, stdin);
         block = 1;
     } else {
         for (int i = 0; i < 3; i++) {
@@ -101,20 +107,21 @@ void verifyEndgame() {
     return;
 }
 
-void EnterNickname() {
+void EnterNickname() {//armazena o novo player e verifica se já jogou antes para puxar dados do ranking
     printf("\nSeja bem-vindo(a) ao meu Number Sums! Vamos comecar!!\n");
     printf("\nDigite seu nome(ate 20 caracteres): ");
     fgets(player.name, 25, stdin);
     int len = strlen(player.name);
     player.name[len-1] = '\0';
     if (len > 20) {
+        clear();
         printf("\nNome invalido! Digite um nome valido, por favor.\n");
         EnterNickname();
         return;
     }
     for (int i = 0; i < len; i++) {
-        if (!isalpha(player.name[i]) && player.name[i] != ' ' && player.name[i] != '\0') { 
-            printf("%s\n", player.name);
+        if (!isalpha(player.name[i]) && player.name[i] != ' ' && player.name[i] != '\0') {
+            clear();
             printf("\nNome invalido! Digite um nome valido, por favor.\n");
             EnterNickname();
             return;
@@ -132,7 +139,6 @@ void EnterNickname() {
         return;
     } else {
         int continuation = 0;
-        char answer;
         fread(&played, sizeof(int), 1, file);
         players allPlayers[played];
         for (int i = 0; i < played; i++) {
@@ -142,13 +148,14 @@ void EnterNickname() {
                 continuation = 1;
                 while (continuation) {
                     printf("\no usuario '%s' ja existe. Deseja continuar? (S/N): ", player.name);
-                    scanf("\n%c", &answer);
-                    if (answer == 'S' || answer == 's') {
+                    fgets(answer, 100, stdin);
+                    if (answer[0] == 'S' || answer[0] == 's') {
                         continuation = 0;
                         menu = 1;
                         player.score = allPlayers[i].score;
                         return;
-                    } else if (answer == 'N' || answer == 'n') {
+                    } else if (answer[0] == 'N' || answer[0] == 'n') {
+                        clear();
                         EnterNickname();
                         return;
                     }
@@ -170,7 +177,7 @@ void EnterNickname() {
     }
 }
 
-void resetRanking() {
+void resetRanking() {//reseta o ranking
     player.score = 0;
     played = 1;
     FILE *file = fopen("ranking.bin","wb");
@@ -178,17 +185,13 @@ void resetRanking() {
     fwrite(&player, sizeof(players), 1, file);
     fclose(file);
     printf("\n\nRanking reiniciado com sucesso! Pressione [Enter] para continuar: ");
-    getchar();
-    char c = getchar();
-    while (c != '\n') {
-        c = getchar();
-    }
+    fgets(answer, 100, stdin);
     printf("\n");
     setupGame();
     return;
 }
 
-void printMenu() {
+void printMenu() {//printa o menu na tela
     printf("\n");
     printf("        Number Sums - Made by: Victor Yan        \n");
     printf("################################################\n\n");
@@ -202,7 +205,7 @@ void printMenu() {
     return;
 }
 
-void printConfig() {
+void printConfig() {//printa as opções de configuração na tela
     printf("\n");
     printf("                  Configuracoes                   \n");
     printf("################################################\n\n");
@@ -215,7 +218,7 @@ void printConfig() {
     return;
 }
 
-void printDificulty() {
+void printDificulty() {//printa as opções de dificuldade na tela
     printf("\n");
     printf("                  Dificuldade                     \n");
     printf("################################################\n\n");
@@ -228,7 +231,7 @@ void printDificulty() {
     return;
 }
 
-void printSuggestLevel() {
+void printSuggestLevel() {//printa as opções de sugestão de nível na tela
     printf("\n");
     printf("                  Sugerir novo nivel                \n");
     printf("################################################\n\n");
@@ -241,7 +244,7 @@ void printSuggestLevel() {
     return;
 }
 
-void printRanking() {
+void printRanking() {//printa o ranking na tela
     players rankingPlayer;
     FILE *file = fopen("ranking.bin","rb");
     if (file == NULL) {
@@ -268,7 +271,7 @@ void printRanking() {
     return;
 }
 
-void printInstructions() {
+void printInstructions() {//printa as instruções na tela
     while (instructions) {
         clear();
         printf("\n");
@@ -278,17 +281,15 @@ void printInstructions() {
         printf("que, em sua respectiva linha e coluna, sejam parte da soma\n");
         printf("que resulta no seu representante de linha e coluna\n\n");
         printf("Aperte [Enter] para continuar ou 'E' para sair: ");
-        char c = getchar();
-        while (c != '\n' && tolower(c) != 'e') {
-            c = getchar();
-        }
-        switch (c) {
-            case '\n':
-                break;
+        fgets(answer, 100, stdin);
+        switch (answer[0]) {
             case 'e' | 'E':
                 instructions = 0;
                 menu = 1;
                 return;
+                break;
+            default:
+                printf("\n\nOpcao invalida. Selecione uma opcao valida, por favor.\n");
                 break;
         }
         clear();
@@ -301,17 +302,15 @@ void printInstructions() {
         printf("corretas, os numeros desaparecerao. Voce possui 5 vidas e,\n");
         printf("ao perde-las, voce perde o jogo.\n\n");
         printf("Aperte [Enter] para continuar ou 'E' para sair: ");
-        c = getchar();
-        while (c != '\n' && tolower(c) != 'e') {
-            c = getchar();
-        }
-        switch (c) {
-            case '\n':
-                break;
+        fgets(answer, 100, stdin);
+        switch (answer[0]) {
             case 'e' | 'E':
                 instructions = 0;
                 menu = 1;
                 return;
+                break;
+            default:
+                printf("\n\nOpcao invalida. Selecione uma opcao valida, por favor.\n");
                 break;
         }
         clear();
@@ -321,15 +320,14 @@ void printInstructions() {
         printf("PONTUACAO: Ao resolver uma fase facil, voce recebe 100 pontos.\n");
         printf("Ao resolver uma fase media, voce recebe 200 pontos.\n");
         printf("Ao resolver uma fase dificil, voce recebe 300 pontos.\n");
-        printf("Ao resolver todas as fases, voce recebe um bonus de 500 pontos.\n\n");
-        printf("Esse eh o fim do tutorial. Deseja ver novamente? (S/N): ");
+        printf("Ao resolver todas as fases, voce recebe um bonus de 500 pontos.\n");
         int verification = 1;
         while (verification) {
-            scanf("\n%c", &c);
-            switch (c) {
+            printf("\nEsse eh o fim do tutorial. Deseja ver novamente? (S/N): ");
+            fgets(answer, 100, stdin);
+            switch (answer[0]) {
                 case 'S' | 's':
                     verification = 0;
-                    getchar();
                     break;
                 case 'N' | 'n':
                     verification = 0;
@@ -338,6 +336,7 @@ void printInstructions() {
                     return;
                     break;
                 default:
+                    clear();
                     printf("\n\nOpcao invalida. Selecione uma opcao valida, por favor.\n");
                     break;
             }
@@ -346,28 +345,21 @@ void printInstructions() {
     return;
 }
 
-void verifyChoice(int line, int col, int lineSum, int colSum) {
+void verifyChoice(int line, int col, int lineSum, int colSum) {//verifica se a escolha do jogador fechou coluna ou linha
     if (rowsSum[line-1] == lineSum) {
         printf("\nMuito bem! Voce fechou a linha %d! Aperte [Enter] para continuar: ", line);
-        char c = getchar();
-        while (c != '\n') {
-            c = getchar();
-        }
+        fgets(answer, 100, stdin);
         rowsSum[line-1] = -1;
     }
     if (colsSum[col-1] == colSum) {
         printf("\nMuito bem! Voce fechou a coluna %d! Aperte [Enter] para continuar: ", col);
-        char c = getchar();
-        while (c != '\n') {
-            c = getchar();
-        }
+        fgets(answer, 100, stdin);
         colsSum[col-1] = -1;
     }
     return;
 }
 
-void playGame(int size) {
-    getchar();
+void playGame(int size) {//printa a matriz atualizada na tela e verifica se o jogador acertou ou errou
     while (playing) {
         lastTurn = correct;
         printf("\n X | ");
@@ -414,83 +406,74 @@ void playGame(int size) {
         }
         printf("\nVoce ainda tem %d vidas!\n", lives);
         printf("Selecione, respectivamente, a linha e a matriz do numero que voce deseja excluir (L C): ");
-        scanf("\n%d %d", &row, &col);
-        switch (mainMatrix[row-1][col-1].delete) {
-            case -1:
-                printf("\n\nOps, vc ja selecionou este espaco! Aperte [Enter] para continuar: ");
-                char c = getchar();
-                while (c != '\n') {
-                    c = getchar();
-                }
-                break;
-            case 0:
-                mainMatrix[row-1][col-1].delete = -1;
-                correct++;
-                if (correct == deletes) {
-                    getchar();
-                    printf("\n\nVoce ganhou! Parabens! Aperte [Enter] para continuar: ");
-                    char c = getchar();
-                    while (c != '\n') {
-                        c = getchar();
+        scanf("%d %d", &row, &col);
+        if (row < 1 || row > size || col < 1 || col > size) {
+            printf("\n\nSelecione uma opcao valida! Aperte [Enter] para tentar novamente:  ");
+            fgets(answer, 100, stdin);
+            fgets(answer, 100, stdin);
+        } else {
+            switch (mainMatrix[row-1][col-1].delete) {
+                case -1:
+                    printf("\n\nOps, vc ja selecionou este espaco! Aperte [Enter] para continuar: ");
+                    fgets(answer, 100, stdin);
+                    fgets(answer, 100, stdin);
+                    break;
+                case 0:
+                    mainMatrix[row-1][col-1].delete = -1;
+                    correct++;
+                    if (correct == deletes) {
+                        printf("\n\nVoce ganhou! Parabens! Aperte [Enter] para continuar: ");
+                        fgets(answer, 100, stdin);
+                        fgets(answer, 100, stdin);
+                        playing = 0;
+                        return;
                     }
-                    playing = 0;
-                    return;
-                }
-                getchar();
-                printf("\n\nVoce acertou, parabens! Aperte [Enter] para continuar.\n");
-                c = getchar();
-                while (c != '\n') {
-                    c = getchar();
-                }
-                int lineSum, colSum;
-                lineSum = colSum = 0;
-                for (int i = 0; i < size; i++) {
-                    if (mainMatrix[i][col-1].delete != -1) {
-                        colSum += mainMatrix[i][col-1].number;
+                    if (correct != lastTurn) {
+                        printf("\n\nVoce acertou, parabens! Aperte [Enter] para continuar.\n");
+                        fgets(answer, 100, stdin);
+                        fgets(answer, 100, stdin);
                     }
-                }
-                for (int i = 0; i < size; i++) {
-                    if (mainMatrix[row-1][i].delete != -1) {
-                        lineSum += mainMatrix[row-1][i].number;
+                    int lineSum, colSum;
+                    lineSum = colSum = 0;
+                    for (int i = 0; i < size; i++) {
+                        if (mainMatrix[i][col-1].delete != -1) {
+                            colSum += mainMatrix[i][col-1].number;
+                        }
                     }
-                }
-                verifyChoice(row, col, lineSum, colSum);
-                break;
-            case 1:
-                if (correct == lastTurn) {
-                    lives--;
-                    printf("\n\nVoce errou. Ainda restam %d vidas! Aperte [Enter] para continuar: ", lives);
-                    char c = getchar();
-                    while (c != '\n') {
-                        c = getchar();
+                    for (int i = 0; i < size; i++) {
+                        if (mainMatrix[row-1][i].delete != -1) {
+                            lineSum += mainMatrix[row-1][i].number;
+                        }
                     }
+                    verifyChoice(row, col, lineSum, colSum);
+                    break;
+                case 1:
+                    if (correct == lastTurn) {
+                        lives--;
+                        printf("\n\nVoce errou. Ainda restam %d vidas! Aperte [Enter] para continuar: ", lives);
+                        fgets(answer, 100, stdin);
+                        fgets(answer, 100, stdin);
+                        printf("\n");
+                    }
+                    if (lives == 0) {
+                        printf("\n\nVoce perdeu! Aperte [Enter] para continuar: ");
+                        fgets(answer, 100, stdin);
+                        playing = 0;
+                    }
+                    break;
+                default:
+                    printf("\n\nSelecione uma opcao valida! Aperte [Enter] para tentar novamente:  ");
+                    fgets(answer, 100, stdin);
                     printf("\n");
-                }
-                if (lives == 0) {
-                    printf("\n\nVoce perdeu! Aperte [Enter] para continuar: ");
-                    char c = getchar();
-                    while (c != '\n') {
-                        c = getchar();
-                    }
-                    playing = 0;
-                }
-                break;
-            default:
-                printf("\n\nSelecione uma opcao valida! Aperte [Enter] para tentar novamente:  ");
-                c = getchar();
-                while (c != '\n') {
-                    c = getchar();
-                }
-                printf("\n");
-                break;
+                    break;
+            }
         }
         clear();
     }
 }
 
-void verifySuggestion(int choice, int size) {
+void verifySuggestion(int choice, int size) {//verifica se a sugestão do jogador não possui erros (linha primeiro, coluna depois)
     int sum;
-    char answer;
     for (int i = 0; i < size; i++) {
         sum = 0;
         for (int j = 0; j < size; j++) {
@@ -501,12 +484,12 @@ void verifySuggestion(int choice, int size) {
         if (sum != rowsSum[i]) {
             printf("\nA soma dos numeros da linha %d nao corresponde a resposta (%d). Tente novamente.\n", i+1, rowsSum[i]);
             printf("\nVoce deseja alterar o numero %d? (S/N): ", rowsSum[i]);
-            scanf("\n%c", &answer);
+            fgets(answer, 100, stdin);
             printf("\n");
-            switch (answer) {
+            switch (answer[0]) {
                 case 'S' | 's':
                     printf("\nDigite um novo valor para esse numero: ");
-                    scanf("\n%d", &rowsSum[i]);
+                    scanf("%d", &rowsSum[i]);
                     verifySuggestion(choice, size);
                     return;
                     break;
@@ -518,25 +501,25 @@ void verifySuggestion(int choice, int size) {
             }
             for (int k = 0; k < size; k++) {
                 printf("\nVoce deseja alterar o numero %d? (S/N): ", mainMatrix[i][k].number);
-                scanf("\n%c", &answer);
+                fgets(answer, 100, stdin);
                 printf("\n");
-                switch (answer) {
+                switch (answer[0]) {
                     case 'S' | 's':
                         printf("\nVoce deseja alterar o valor ou se deve, ou nao, ser deletado? (V/D): ");
-                        scanf("\n%c", &answer);
+                        fgets(answer, 100, stdin);
                         printf("\n");
-                        switch (answer) {
+                        switch (answer[0]) {
                             case 'V' | 'v':
                                 printf("\nDigite um novo valor para esse numero: ");
-                                scanf("\n%d", &mainMatrix[i][k].number);
+                                scanf("%d", &mainMatrix[i][k].number);
                                 verifySuggestion(choice, size);
                                 return;
                                 break;
                             case 'D' | 'd':
                                 printf("\nEste numero deve ser excluido? (S/N): ");
-                                scanf("\n%c", &answer);
+                                fgets(answer, 100, stdin);
                                 printf("\n");
-                                switch (answer) {
+                                switch (answer[0]) {
                                     case 'S' | 's':
                                         mainMatrix[i][k].delete = 0;
                                         verifySuggestion(choice, size);
@@ -573,12 +556,12 @@ void verifySuggestion(int choice, int size) {
         if (sum != colsSum[i]) {
             printf("\nA soma dos numeros da linha %d nao corresponde a resposta (%d). Tente novamente.\n", i+1, colsSum[i]);
             printf("\nVoce deseja alterar o numero %d? (S/N): ", colsSum[i]);
-            scanf("\n%c", &answer);
+            fgets(answer, 100, stdin);
             printf("\n");
-            switch (answer) {
+            switch (answer[0]) {
                 case 'S' | 's':
                     printf("\nDigite um novo valor para esse numero: ");
-                    scanf("\n%d", &colsSum[i]);
+                    scanf("%d", &colsSum[i]);
                     verifySuggestion(choice, size);
                     return;
                     break;
@@ -590,25 +573,25 @@ void verifySuggestion(int choice, int size) {
             }
             for (int k = 0; k < size; k++) {
                 printf("\nVoce deseja alterar o numero %d? (S/N): ", mainMatrix[k][i].number);
-                scanf("\n%c", &answer);
+                fgets(answer, 100, stdin);
                 printf("\n");
-                switch (answer) {
+                switch (answer[0]) {
                     case 'S' | 's':
                         printf("\nVoce deseja alterar o valor ou se deve, ou nao, ser deletado? (V/D): ");
-                        scanf("\n%c", &answer);
+                        fgets(answer, 100, stdin);
                         printf("\n");
-                        switch (answer) {
+                        switch (answer[0]) {
                             case 'V' | 'v':
                                 printf("\nDigite um novo valor para esse numero: ");
-                                scanf("\n%d", &mainMatrix[k][i].number);
+                                scanf("%d", &mainMatrix[k][i].number);
                                 verifySuggestion(choice, size);
                                 return;
                                 break;
                             case 'D' | 'd':
                                 printf("\nEste numero deve ser excluido? (S/N): ");
-                                scanf("\n%c", &answer);
+                                fgets(answer, 100, stdin);
                                 printf("\n");
-                                switch (answer) {
+                                switch (answer[0]) {
                                     case 'S' | 's':
                                         mainMatrix[k][i].delete = 0;
                                         verifySuggestion(choice, size);
@@ -640,15 +623,14 @@ void verifySuggestion(int choice, int size) {
 }
 
 void suggestGame(int choice, int size) {
-    memset(mainMatrix, -1, sizeof(mainMatrix));
-    memset(colsSum, -1, sizeof(colsSum));
-    memset(rowsSum, -1, sizeof(rowsSum));
+    memset(mainMatrix, 2, sizeof(mainMatrix));
+    memset(colsSum, 2, sizeof(colsSum));
+    memset(rowsSum, 2, sizeof(rowsSum));
     addingGame = 0;
-    char answer;
     for (int i = 0; i < size; i++) {
         while (suggesting) {    
             printf("\nDigite a resposta da coluna %d: ", i+1);
-            scanf("\n%d", &colsSum[i]);
+            scanf("%d", &colsSum[i]);
             break;
         }
         clear();
@@ -656,7 +638,7 @@ void suggestGame(int choice, int size) {
     for (int i = 0; i < size; i++) {
         while (suggesting) {
             printf("\nDigite a resposta da linha %d: ", i+1);
-            scanf("\n%d", &rowsSum[i]);
+            scanf("%d", &rowsSum[i]);
             break;
         }
         clear();
@@ -707,15 +689,15 @@ void suggestGame(int choice, int size) {
                     }
                 }
                 printf("\nDigite o numero da linha %d e coluna %d: ", i+1, j+1);
-                scanf("\n%d", &mainMatrix[i][j].number);
+                scanf("%d", &mainMatrix[i][j].number);
                 printf("\n");
                 if (mainMatrix[i][j].number < 0 || mainMatrix[i][j].number > 9) {
                     printf("\nNumero invalido! Digite um numero entre 0 e 9, por favor.\n");
                 } else {
                     printf("\nEste numero deve ser excluido? (S/N): ");
-                    scanf("\n%c", &answer);
+                    fgets(answer, 100, stdin);
                     printf("\n");
-                    switch (answer) {
+                    switch (answer[0]) {
                         case 'S' | 's':
                             mainMatrix[i][j].delete = 0;
                             break;
@@ -734,7 +716,7 @@ void suggestGame(int choice, int size) {
             }
         }
     verifySuggestion(choice, size);
-    while (addingGame) {
+    while (addingGame) {//adiciona a nova fase aos arquivos
         FILE *file;
         switch (choice) {
             case 1:
@@ -794,6 +776,7 @@ void suggestGame(int choice, int size) {
         }
         fprintf(file, "*");
         fclose(file);
+        //adiciona o offset da nova fase ao arquivo de offsets
         FILE* offsets = fopen("offsets.txt", "w");
         totals[choice-1]++;
         easyOffsets = (int*)realloc(easyOffsets, totals[0] * sizeof(int));
@@ -840,16 +823,12 @@ void suggestGame(int choice, int size) {
         break;
     }
     printf("\nNova fase adicionada com sucesso! Aperte enter para continuar: \n");
-    getchar();
-    char c = getchar();
-    while (c != '\n') {
-        c = getchar();
-    }
+    fgets(answer, 100, stdin);
     suggesting = 0;
     menu = 1;
 }
 
-void generateGame(int size) {
+void generateGame(int size) {//pega os dados da matriz do jogo e sorteia a fase
     deletes = 0;
     FILE *file;
     switch (dificulty) {
@@ -934,7 +913,7 @@ void Play() {
             generateGame(7);
             break;
     }
-    if (lives != 0) {
+    if (lives != 0) {//verifica se o jogador ganhou e atualiza o score e o ranking
         player.score += 100 * dificulty;
         solved[dificulty-1]++;
         FILE *file = fopen("ranking.bin", "rb");
@@ -955,15 +934,12 @@ void Play() {
         }
         fclose(file2);
         int newRandom;
-        switch(dificulty) {
+        switch(dificulty) {//verifica se o jogador completou todas as fases da dificuldade que jogou
             case 1:
                 if (solved[dificulty-1] == totals[0]) {
                     available[dificulty-1] = 0;
                     printf("\nParabens! Voce completou todas as fases faceis! Aperte [Enter] para continuar: \n");
-                    char c = getchar();
-                    while (c != '\n') {
-                        c = getchar();
-                    }
+                    fgets(answer, 100, stdin);
                     verifyEndgame();
                 } else {
                     for (int i = 0; i < totals[0]; i++) {
@@ -979,10 +955,7 @@ void Play() {
                 if (solved[dificulty-1] == totals[1]) {
                     available[dificulty-1] = 0;
                     printf("\nParabens! Voce completou todas as fases medias! Aperte [Enter] para continuar: \n");
-                    char c = getchar();
-                    while (c != '\n') {
-                        c = getchar();
-                    }
+                    fgets(answer, 100, stdin);
                     verifyEndgame();
                 } else {
                     for (int i = 0; i < totals[1]; i++) {
@@ -998,10 +971,7 @@ void Play() {
                 if (solved[dificulty-1] == totals[2]) {
                     available[dificulty-1] = 0;
                     printf("\nParabens! Voce completou todas as fases dificeis! Aperte [Enter] para continuar: \n");
-                    char c = getchar();
-                    while (c != '\n') {
-                        c = getchar();
-                    }
+                    fgets(answer, 100, stdin);
                     verifyEndgame();
                 } else {
                     for (int i = 0; i < totals[2]; i++) {
@@ -1020,42 +990,37 @@ void Play() {
 int main() {
     menu = settings = chooseDificulty = ranking = played = block = 0;
     setupGame();
-    char menuOption;
     EnterNickname();
-    while (menu && !block) {
+    while (menu && !block) {//block é uma variável que impede que o jogador volte ao menu principal após zerar todas as fases
         clear();
         lives = 5;
         printMenu();
-        scanf("\n%c", &menuOption);
-        switch(menuOption) {
-            case '1':
+        fgets(answer, 100, stdin);
+        switch(answer[0]) {
+            case '1'://Jogar
                 clear();
                 Play();
                 break;
-            case '2':
+            case '2'://Menu de configurações
                 clear();
                 settings = 1;
                 while (settings) {
                     clear();
                     printConfig();
-                    scanf("\n%c", &menuOption);
-                    switch(menuOption) {
-                        case '1':
+                    fgets(answer, 100, stdin);
+                    switch(answer[0]) {
+                        case '1'://Menu de dificuldades
                             settings = 0;
                             chooseDificulty = 1;
                             while (chooseDificulty) {
                                 clear();
                                 printDificulty();
-                                scanf("\n%c", &menuOption);
-                                switch(menuOption) {
+                                fgets(answer, 100, stdin);
+                                switch(answer[0]) {//verifica se o jogador já zerou as fases da dificuldade que escolheu e muda se não tiver zerado todas
                                     case '1':
                                         if (totals[0] == solved[0]) {
                                             printf("\nVoce ja completou todas as fases faceis! Aperte [Enter] para continuar: \n");
-                                            getchar();
-                                            char c = getchar();
-                                            while (c != '\n') {
-                                                c = getchar();
-                                            }
+                                            fgets(answer, 100, stdin);
                                             break;
                                         }
                                         dificulty = 1;
@@ -1064,11 +1029,7 @@ int main() {
                                     case '2':
                                         if (totals[1] == solved[1]) {
                                             printf("\nVoce ja completou todas as fases medias! Aperte [Enter] para continuar: \n");
-                                            getchar();
-                                            char c = getchar();
-                                            while (c != '\n') {
-                                                c = getchar();
-                                            }
+                                            fgets(answer, 100, stdin);
                                             break;
                                         }
                                         dificulty = 2;
@@ -1077,11 +1038,7 @@ int main() {
                                     case '3':
                                         if (totals[2] == solved[2]) {
                                             printf("\nVoce ja completou todas as fases dificeis! Aperte [Enter] para continuar: \n");
-                                            getchar();
-                                            char c = getchar();
-                                            while (c != '\n') {
-                                                c = getchar();
-                                            }
+                                            fgets(answer, 100, stdin);
                                             break;
                                         }
                                         dificulty = 3;
@@ -1092,19 +1049,20 @@ int main() {
                                         settings = 1;
                                         break;
                                     default:
-                                        printf("\nOpcao invalida! Selecione uma dificuldade, por favor.\n");
+                                        printf("\nOpcao invalida! Selecione uma dificuldade, por favor. Aperte [Enter] para continuar: \n");
+                                        fgets(answer, 100, stdin);
                                         break;
                                 }
                             }
                             break;
-                        case '2':
+                        case '2'://Menu de sugerir novo nivel
                             settings = 0;
                             suggesting = 1;
                             while (suggesting) {
                                 clear();
                                 printSuggestLevel();
-                                scanf("\n%c", &menuOption);
-                                switch(menuOption) {
+                                fgets(answer, 100, stdin);
+                                switch(answer[0]) {
                                     case '1':
                                         clear();
                                         suggestGame(1, 4);
@@ -1122,12 +1080,13 @@ int main() {
                                         settings = 1;
                                         break;
                                     default:
-                                        printf("\nOpcao invalida! Selecione uma opcao de configuracao, por favor.\n");
+                                        printf("\nOpcao invalida! Selecione uma opcao de configuracao, por favor. Aperte [Enter] para continuar: \n");
+                                        fgets(answer, 100, stdin);
                                         break;
                                 }
                             }
                             break;
-                        case '3':
+                        case '3'://Reseta o ranking e mostra na tela q excluiu
                             clear();
                             settings = 0;
                             resetRanking();
@@ -1135,27 +1094,23 @@ int main() {
                             settings = 0;
                             break;
                         default:
-                            printf("\nOpcao invalida! Selecione uma opcao de configuracao, por favor.\n");
+                            printf("\nOpcao invalida! Selecione uma opcao de configuracao, por favor. Aperte [Enter] para continuar: \n");
+                            fgets(answer, 100, stdin);
                             break;
                     }
                 }
                 break;
-            case '3':
+            case '3'://Menu de ranking
                 ranking = 1;
                 while (ranking) {
                     clear();
                     printRanking();
-                    getchar();
-                    char c = getchar();
-                    while (c != '\n') {
-                        c = getchar();
-                    }
+                    fgets(answer, 100, stdin);
                     ranking = 0;
                 }
                 break;
-            case '4':
+            case '4'://Menu de instruções
                 clear();
-                getchar();
                 instructions = 1;
                 printInstructions();
                 break;
@@ -1163,7 +1118,8 @@ int main() {
                 return 0;
                 break;
             default:
-                printf("\nOpcao invalida! Selecione uma opcao do menu, por favor.\n");
+                printf("\nOpcao invalida! Selecione uma opcao do menu, por favor. Aperte [Enter] para continuar: \n");
+                fgets(answer, 100, stdin);
                 break;
         }
     }
