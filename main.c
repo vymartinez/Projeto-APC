@@ -474,15 +474,27 @@ void playGame(int size) {//printa a matriz atualizada na tela e verifica se o jo
 
 void verifySuggestion(int choice, int size) {//verifica se a sugestão do jogador não possui erros (linha primeiro, coluna depois)
     int sum;
+    int nums[size];
+    int total = 0;
     for (int i = 0; i < size; i++) {
         sum = 0;
         for (int j = 0; j < size; j++) {
             if (mainMatrix[i][j].delete == 1) {
                 sum += mainMatrix[i][j].number;
+                nums[total] = mainMatrix[i][j].number;
+                total++;
             }
         }
         if (sum != rowsSum[i]) {
             printf("\nA soma dos numeros da linha %d nao corresponde a resposta (%d). Tente novamente.\n", i+1, rowsSum[i]);
+            printf("\nSoma: ");
+            for (int k = 0; k < total; k++) {
+                if (k == total-1) {
+                    printf("%d = %d\n", nums[k], rowsSum[i]);
+                } else {
+                    printf("%d + ", nums[k]);
+                }
+            }
             printf("\nVoce deseja alterar o numero %d? (S/N): ", rowsSum[i]);
             fgets(answer, 100, stdin);
             printf("\n");
@@ -548,13 +560,25 @@ void verifySuggestion(int choice, int size) {//verifica se a sugestão do jogado
     }
     for (int i = 0; i < size; i++) {
         sum = 0;
+        int nums[size];
+        int total = 0;
         for (int j = 0; j < size; j++) {
             if (mainMatrix[j][i].delete == 1) {
                 sum += mainMatrix[j][i].number;
+                nums[total] = mainMatrix[j][i].number;
+                total++;
             }
         }
         if (sum != colsSum[i]) {
             printf("\nA soma dos numeros da linha %d nao corresponde a resposta (%d). Tente novamente.\n", i+1, colsSum[i]);
+            printf("\nSoma: ");
+            for (int k = 0; k < total; k++) {
+                if (k == total-1) {
+                    printf("%d = %d\n", nums[k], colsSum[i]);
+                } else {
+                    printf("%d + ", nums[k]);
+                }
+            }
             printf("\nVoce deseja alterar o numero %d? (S/N): ", colsSum[i]);
             fgets(answer, 100, stdin);
             printf("\n");
