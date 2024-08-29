@@ -19,9 +19,9 @@ typedef struct matrix {
 } matrix;
 
 //LOOPS
-int menu, playing, settings, suggesting, ranking, chooseDificulty, played, addingGame, block, instructions;
+int menu, playing, settings, suggesting, ranking, chooseDificulty, played, addingGame, block, instructions, answering;
 //VARIABLES
-int correct, lastTurn, lives, random, row, col, lastOffset, deletes;
+int correct, lastTurn, lives, random, row, col, lastOffset, deletes, len;
 int colsSum[7], rowsSum[7];//somas das linhas e colunas
 int totals[3];//numero de fases de cada dificuldade
 int *easyOffsets, *mediumOffsets, *hardOffsets;//inicio de cada uma das fases
@@ -107,11 +107,17 @@ void verifyEndgame() {//verifica se zerou todas as fases, se não só troca de d
     return;
 }
 
+void adaptPlayerName(int spaces, int length) {
+    for (int i = spaces; i < length; i++) {
+        player.name[i-spaces] = player.name[i];
+    }
+}
+
 void EnterNickname() {//armazena o novo player e verifica se já jogou antes para puxar dados do ranking
     printf("\nSeja bem-vindo(a) ao meu Number Sums! Vamos comecar!!\n");
     printf("\nDigite seu nome(ate 20 caracteres): ");
     fgets(player.name, 25, stdin);
-    int len = strlen(player.name);
+    len = strlen(player.name);
     player.name[len-1] = '\0';
     if (len > 20) {
         clear();
@@ -119,13 +125,30 @@ void EnterNickname() {//armazena o novo player e verifica se já jogou antes par
         EnterNickname();
         return;
     }
+    int isSpace = 1;
+    int spaces = 0;
     for (int i = 0; i < len; i++) {
+        if (player.name[i] != ' ' && player.name[i] != '\0') {
+            isSpace = 0;
+        }
+        if (isSpace == 1) {
+            spaces++;
+        }
         if (!isalpha(player.name[i]) && player.name[i] != ' ' && player.name[i] != '\0') {
             clear();
             printf("\nNome invalido! Digite um nome valido, por favor.\n");
             EnterNickname();
             return;
         }
+    }
+    if (isSpace == 1) {
+        clear();
+        printf("\nNome invalido! Digite um nome valido, por favor.\n");
+        EnterNickname();
+        return;
+    }
+    if (spaces != 0) {
+        adaptPlayerName(spaces, len);
     }
     FILE *file = fopen("ranking.bin","rb");
     if (file == NULL) {
@@ -149,12 +172,13 @@ void EnterNickname() {//armazena o novo player e verifica se já jogou antes par
                 while (continuation) {
                     printf("\no usuario '%s' ja existe. Deseja continuar? (S/N): ", player.name);
                     fgets(answer, 100, stdin);
-                    if (answer[0] == 'S' || answer[0] == 's') {
+                    len = strlen(answer);
+                    if ((answer[0] == 'S' || answer[0] == 's') && len == 2) {
                         continuation = 0;
                         menu = 1;
                         player.score = allPlayers[i].score;
                         return;
-                    } else if (answer[0] == 'N' || answer[0] == 'n') {
+                    } else if ((answer[0] == 'N' || answer[0] == 'n') && len == 2) {
                         clear();
                         EnterNickname();
                         return;
@@ -262,7 +286,7 @@ void printRanking() {//printa o ranking na tela
             for (int i = 0; i < 30-length; i++) {
                 printf(" ");
             }
-            printf("- PONTOS: %5d\n", rankingPlayer.score);
+            printf("PONTOS: %7d\n", rankingPlayer.score);
         }
         fclose(file);
         printf("\n################################################\n\n");
@@ -282,11 +306,17 @@ void printInstructions() {//printa as instruções na tela
         printf("que resulta no seu representante de linha e coluna\n\n");
         printf("Aperte [Enter] para continuar ou 'E' para sair: ");
         fgets(answer, 100, stdin);
+        len = strlen(answer);
         switch (answer[0]) {
             case 'e' | 'E':
-                instructions = 0;
-                menu = 1;
-                return;
+                if (len == 2) {
+                    instructions = 0;
+                    menu = 1;
+                    return;
+                } else {
+                    printf("\nOpcao invalida! Selecione uma opcao do menu, por favor. Aperte [Enter] para continuar: \n");
+                    fgets(answer, 100, stdin);
+                }
                 break;
             default:
                 printf("\n\nOpcao invalida. Selecione uma opcao valida, por favor.\n");
@@ -303,11 +333,17 @@ void printInstructions() {//printa as instruções na tela
         printf("ao perde-las, voce perde o jogo.\n\n");
         printf("Aperte [Enter] para continuar ou 'E' para sair: ");
         fgets(answer, 100, stdin);
+        len = strlen(answer);
         switch (answer[0]) {
             case 'e' | 'E':
-                instructions = 0;
-                menu = 1;
-                return;
+                if (len == 2) {
+                    instructions = 0;
+                    menu = 1;
+                    return;
+                } else {
+                    printf("\nOpcao invalida! Selecione uma opcao do menu, por favor. Aperte [Enter] para continuar: \n");
+                    fgets(answer, 100, stdin);
+                }
                 break;
             default:
                 printf("\n\nOpcao invalida. Selecione uma opcao valida, por favor.\n");
@@ -325,15 +361,26 @@ void printInstructions() {//printa as instruções na tela
         while (verification) {
             printf("\nEsse eh o fim do tutorial. Deseja ver novamente? (S/N): ");
             fgets(answer, 100, stdin);
+            len = strlen(answer);
             switch (answer[0]) {
                 case 'S' | 's':
-                    verification = 0;
+                    if (len == 2) {
+                        verification = 0;
+                    } else {
+                        printf("\nOpcao invalida! Selecione uma opcao do menu, por favor. Aperte [Enter] para continuar: \n");
+                        fgets(answer, 100, stdin);
+                    }
                     break;
                 case 'N' | 'n':
-                    verification = 0;
-                    instructions = 0;
-                    menu = 1;
-                    return;
+                    if (len == 2) {
+                        verification = 0;
+                        instructions = 0;
+                        menu = 1;
+                        return;
+                    } else {
+                        printf("\nOpcao invalida! Selecione uma opcao do menu, por favor. Aperte [Enter] para continuar: \n");
+                        fgets(answer, 100, stdin);
+                    }
                     break;
                 default:
                     clear();
@@ -495,65 +542,133 @@ void verifySuggestion(int choice, int size) {//verifica se a sugestão do jogado
                     printf("%d + ", nums[k]);
                 }
             }
-            printf("\nVoce deseja alterar o numero %d? (S/N): ", rowsSum[i]);
-            fgets(answer, 100, stdin);
-            printf("\n");
-            switch (answer[0]) {
-                case 'S' | 's':
-                    printf("\nDigite um novo valor para esse numero: ");
-                    scanf("%d", &rowsSum[i]);
-                    verifySuggestion(choice, size);
-                    return;
-                    break;
-                case 'N' | 'n':
-                    break;
-                default:
-                    printf("\nOpcao invalida! Digite S para sim ou N para nao.\n");
-                    break;
-            }
-            for (int k = 0; k < size; k++) {
-                printf("\nVoce deseja alterar o numero %d? (S/N): ", mainMatrix[i][k].number);
+            answering = 1;
+            while (answering) {
+                printf("\nVoce deseja alterar o numero %d? (S/N): ", rowsSum[i]);
                 fgets(answer, 100, stdin);
+                len = strlen(answer);
                 printf("\n");
                 switch (answer[0]) {
                     case 'S' | 's':
-                        printf("\nVoce deseja alterar o valor ou se deve, ou nao, ser deletado? (V/D): ");
-                        fgets(answer, 100, stdin);
-                        printf("\n");
-                        switch (answer[0]) {
-                            case 'V' | 'v':
-                                printf("\nDigite um novo valor para esse numero: ");
-                                scanf("%d", &mainMatrix[i][k].number);
-                                verifySuggestion(choice, size);
-                                return;
-                                break;
-                            case 'D' | 'd':
-                                printf("\nEste numero deve ser excluido? (S/N): ");
-                                fgets(answer, 100, stdin);
-                                printf("\n");
-                                switch (answer[0]) {
-                                    case 'S' | 's':
-                                        mainMatrix[i][k].delete = 0;
-                                        verifySuggestion(choice, size);
-                                        break;
-                                    case 'N' | 'n':
-                                        mainMatrix[i][k].delete = 1;
-                                            verifySuggestion(choice, size);
-                                        break;
-                                    default:
-                                        printf("\nOpcao invalida! Digite S para sim ou N para nao.\n");
-                                        break;
-                                }
-                            default:
-                                printf("\nOpcao invalida! Digite V para alterar o valor ou D para deletar o numero.\n");
-                                break;
+                        if (len == 2) {
+                            printf("\nDigite um novo valor para esse numero: ");
+                            scanf("%d", &rowsSum[i]);
+                            fgets(answer, 100, stdin);//limpa o buffer
+                            verifySuggestion(choice, size);
+                            return;
+                        } else {
+                            printf("\nOpcao invalida! Selecione uma opcao do menu, por favor. Aperte [Enter] para continuar: \n");
+                            fgets(answer, 100, stdin);
                         }
                         break;
                     case 'N' | 'n':
+                        if (len == 2) {
+                            answering = 0;
+                        } else {
+                            printf("\nOpcao invalida! Selecione uma opcao do menu, por favor. Aperte [Enter] para continuar: \n");
+                            fgets(answer, 100, stdin);
+                        }
                         break;
                     default:
-                        printf("\nOpcao invalida! Digite S para sim ou N para nao.\n");
+                        printf("\nOpcao invalida! Digite S para sim ou N para nao. Aperte [Enter] para continuar: \n");
+                        fgets(answer, 100, stdin);
                         break;
+                }
+                clear();
+            }
+            for (int k = 0; k < size; k++) {
+                answering = 1;
+                while (answering) {
+                    printf("\nVoce deseja alterar o numero %d? (S/N): ", mainMatrix[i][k].number);
+                    fgets(answer, 100, stdin);
+                    len = strlen(answer);
+                    printf("\n");
+                    switch (answer[0]) {
+                        case 'S' | 's':
+                            if (len == 2) {
+                                while (answering) {
+                                    printf("\nVoce deseja alterar o valor ou se deve, ou nao, ser deletado? (V/D): ");
+                                    fgets(answer, 100, stdin);
+                                    len = strlen(answer);
+                                    printf("\n");
+                                    switch (answer[0]) {
+                                        case 'V' | 'v':
+                                            if (len == 2) {
+                                                printf("\nDigite um novo valor para esse numero: ");
+                                                scanf("%d", &mainMatrix[i][k].number);
+                                                verifySuggestion(choice, size);
+                                                return;
+                                            } else {
+                                                printf("\nOpcao invalida! Selecione uma opcao do menu, por favor. Aperte [Enter] para continuar: \n");
+                                                fgets(answer, 100, stdin);
+                                            }
+                                            break;
+                                        case 'D' | 'd':
+                                            if (len == 2) {
+                                                while (answering) {
+                                                    printf("\nEste numero deve ser excluido? (S/N): ");
+                                                    fgets(answer, 100, stdin);
+                                                    len = strlen(answer);
+                                                    printf("\n");
+                                                    switch (answer[0]) {
+                                                        case 'S' | 's':
+                                                            if (len == 2) {
+                                                                mainMatrix[i][k].delete = 0;
+                                                                verifySuggestion(choice, size);
+                                                                return;
+                                                            } else {
+                                                                printf("\nOpcao invalida! Selecione uma opcao do menu, por favor. Aperte [Enter] para continuar: \n");
+                                                                fgets(answer, 100, stdin);
+                                                            }
+                                                            break;
+                                                        case 'N' | 'n':
+                                                            if (len == 2) {
+                                                                mainMatrix[i][k].delete = 1;
+                                                                verifySuggestion(choice, size);
+                                                                return;
+                                                            } else {
+                                                                printf("\nOpcao invalida! Selecione uma opcao do menu, por favor. Aperte [Enter] para continuar: \n");
+                                                                fgets(answer, 100, stdin);
+                                                            }
+                                                            break;
+                                                        default:
+                                                            printf("\nOpcao invalida! Digite S para sim ou N para nao. Aperte [Enter] para continuar: \n");
+                                                            fgets(answer, 100, stdin);
+                                                            break;
+                                                    }
+                                                    clear();
+                                                }
+                                            } else {
+                                                printf("\nOpcao invalida! Selecione uma opcao do menu, por favor. Aperte [Enter] para continuar: \n");
+                                                fgets(answer, 100, stdin);
+                                            }
+                                            break;
+                                        default:
+                                            printf("\nOpcao invalida! Digite V para alterar o valor ou D para deletar o numero. Aperte [Enter] para continuar: \n");
+                                            fgets(answer, 100, stdin);
+                                            break;
+                                    }
+                                    clear();
+                                }
+                                break;
+                            case 'N' | 'n':
+                                if (len == 2) {
+                                    answering = 0;
+                                } else {
+                                    printf("\nOpcao invalida! Selecione uma opcao do menu, por favor. Aperte [Enter] para continuar: \n");
+                                    fgets(answer, 100, stdin);
+                                }
+                                break;
+                            default:
+                                printf("\nOpcao invalida! Digite S para sim ou N para nao. Aperte [Enter] para continuar: \n");
+                                fgets(answer, 100, stdin);
+                                break;
+                        } else {
+                            printf("\nOpcao invalida! Selecione uma opcao do menu, por favor. Aperte [Enter] para continuar: \n");
+                            fgets(answer, 100, stdin);
+                        }
+                    }
+                    clear();
                 }
             }
         }
@@ -579,65 +694,133 @@ void verifySuggestion(int choice, int size) {//verifica se a sugestão do jogado
                     printf("%d + ", nums[k]);
                 }
             }
-            printf("\nVoce deseja alterar o numero %d? (S/N): ", colsSum[i]);
-            fgets(answer, 100, stdin);
-            printf("\n");
-            switch (answer[0]) {
-                case 'S' | 's':
-                    printf("\nDigite um novo valor para esse numero: ");
-                    scanf("%d", &colsSum[i]);
-                    verifySuggestion(choice, size);
-                    return;
-                    break;
-                case 'N' | 'n':
-                    break;
-                default:
-                    printf("\nOpcao invalida! Digite S para sim ou N para nao.\n");
-                    break;
-            }
-            for (int k = 0; k < size; k++) {
-                printf("\nVoce deseja alterar o numero %d? (S/N): ", mainMatrix[k][i].number);
+            answering = 1;
+            while (answering) {
+                printf("\nVoce deseja alterar o numero %d? (S/N): ", colsSum[i]);
                 fgets(answer, 100, stdin);
+                len = strlen(answer);
                 printf("\n");
                 switch (answer[0]) {
                     case 'S' | 's':
-                        printf("\nVoce deseja alterar o valor ou se deve, ou nao, ser deletado? (V/D): ");
-                        fgets(answer, 100, stdin);
-                        printf("\n");
-                        switch (answer[0]) {
-                            case 'V' | 'v':
-                                printf("\nDigite um novo valor para esse numero: ");
-                                scanf("%d", &mainMatrix[k][i].number);
-                                verifySuggestion(choice, size);
-                                return;
-                                break;
-                            case 'D' | 'd':
-                                printf("\nEste numero deve ser excluido? (S/N): ");
-                                fgets(answer, 100, stdin);
-                                printf("\n");
-                                switch (answer[0]) {
-                                    case 'S' | 's':
-                                        mainMatrix[k][i].delete = 0;
-                                        verifySuggestion(choice, size);
-                                        break;
-                                    case 'N' | 'n':
-                                        mainMatrix[k][i].delete = 1;
-                                        verifySuggestion(choice, size);
-                                        break;
-                                    default:
-                                        printf("\nOpcao invalida! Digite S para sim ou N para nao.\n");
-                                        break;
-                                }
-                            default:
-                                printf("\nOpcao invalida! Digite V para alterar o valor ou D para deletar o numero.\n");
-                                break;
+                        if (len == 2) {
+                            printf("\nDigite um novo valor para esse numero: ");
+                            scanf("%d", &colsSum[i]);
+                            fgets(answer, 100, stdin);
+                            verifySuggestion(choice, size);
+                            return;
+                        } else {
+                            printf("\nOpcao invalida! Selecione uma opcao do menu, por favor. Aperte [Enter] para continuar: \n");
+                            fgets(answer, 100, stdin);
                         }
                         break;
                     case 'N' | 'n':
+                        if (len == 2) {
+                            answering = 0;
+                        } else {
+                            printf("\nOpcao invalida! Selecione uma opcao do menu, por favor. Aperte [Enter] para continuar: \n");
+                            fgets(answer, 100, stdin);
+                        }
                         break;
                     default:
-                        printf("\nOpcao invalida! Digite S para sim ou N para nao.\n");
+                        printf("\nOpcao invalida! Digite S para sim ou N para nao. Aperte [Enter] para continuar: \n");
+                        fgets(answer, 100, stdin);
                         break;
+                }
+                clear();
+            }
+            for (int k = 0; k < size; k++) {
+                answering = 1;
+                while (answering) {
+                    printf("\nVoce deseja alterar o numero %d? (S/N): ", mainMatrix[i][k].number);
+                    fgets(answer, 100, stdin);
+                    len = strlen(answer);
+                    printf("\n");
+                    switch (answer[0]) {
+                        case 'S' | 's':
+                            if (len == 2) {
+                                while (answering) {
+                                    printf("\nVoce deseja alterar o valor ou se deve, ou nao, ser deletado? (V/D): ");
+                                    fgets(answer, 100, stdin);
+                                    len = strlen(answer);
+                                    printf("\n");
+                                    switch (answer[0]) {
+                                        case 'V' | 'v':
+                                            if (len == 2) {
+                                                printf("\nDigite um novo valor para esse numero: ");
+                                                scanf("%d", &mainMatrix[i][k].number);
+                                                fgets(answer, 100, stdin);
+                                                verifySuggestion(choice, size);
+                                                return;
+                                            } else {
+                                                printf("\nOpcao invalida! Selecione uma opcao do menu, por favor. Aperte [Enter] para continuar: \n");
+                                                fgets(answer, 100, stdin);
+                                            }
+                                            break;
+                                        case 'D' | 'd':
+                                            if (len == 2) {
+                                                while (answering) {
+                                                    printf("\nEste numero (%d) deve ser excluido? (S/N): ", mainMatrix[i][k].number);
+                                                    fgets(answer, 100, stdin);
+                                                    len = strlen(answer);
+                                                    printf("\n");
+                                                    switch (answer[0]) {
+                                                        case 'S' | 's':
+                                                            if (len == 2) {
+                                                                mainMatrix[i][k].delete = 0;
+                                                                verifySuggestion(choice, size);
+                                                                return;
+                                                            } else {
+                                                                printf("\nOpcao invalida! Selecione uma opcao do menu, por favor. Aperte [Enter] para continuar: \n");
+                                                                fgets(answer, 100, stdin);
+                                                            }
+                                                            break;
+                                                        case 'N' | 'n':
+                                                            if (len == 2) {
+                                                                mainMatrix[i][k].delete = 1;
+                                                                verifySuggestion(choice, size);
+                                                                return;
+                                                            } else {
+                                                                printf("\nOpcao invalida! Selecione uma opcao do menu, por favor. Aperte [Enter] para continuar: \n");
+                                                                fgets(answer, 100, stdin);
+                                                            }
+                                                            break;
+                                                        default:
+                                                            printf("\nOpcao invalida! Digite S para sim ou N para nao. Aperte [Enter] para continuar: \n");
+                                                            fgets(answer, 100, stdin);
+                                                            break;
+                                                    }
+                                                    clear();
+                                                }
+                                            } else {
+                                                printf("\nOpcao invalida! Selecione uma opcao do menu, por favor. Aperte [Enter] para continuar: \n");
+                                                fgets(answer, 100, stdin);
+                                            }
+                                        default:
+                                            printf("\nOpcao invalida! Digite V para alterar o valor ou D para deletar o numero Aperte [Enter] para continuar: \n");
+                                            fgets(answer, 100, stdin);
+                                            break;
+                                    }
+                                    clear();
+                                }
+                                break;
+                            case 'N' | 'n':
+                                if (len == 2) {
+                                    answering = 0;
+                                } else {
+                                    printf("\nOpcao invalida! Selecione uma opcao do menu, por favor. Aperte [Enter] para continuar: \n");
+                                    fgets(answer, 100, stdin);
+                                }
+                                break;
+                            default:
+                                printf("\nOpcao invalida! Digite S para sim ou N para nao. Aperte [Enter] para continuar: \n");
+                                fgets(answer, 100, stdin);
+                                break;
+                        } else {
+                            printf("\nOpcao invalida! Selecione uma opcao do menu, por favor. Aperte [Enter] para continuar: \n");
+                            fgets(answer, 100, stdin);
+                        }
+                    }
+                    clear();
                 }
             }
         }
@@ -714,32 +897,50 @@ void suggestGame(int choice, int size) {
                 }
                 printf("\nDigite o numero da linha %d e coluna %d: ", i+1, j+1);
                 scanf("%d", &mainMatrix[i][j].number);
+                fgets(answer, 100, stdin);
                 printf("\n");
                 if (mainMatrix[i][j].number < 0 || mainMatrix[i][j].number > 9) {
-                    printf("\nNumero invalido! Digite um numero entre 0 e 9, por favor.\n");
+                    printf("\nNumero invalido! Digite um numero entre 0 e 9, por favor. Aperte [Enter] para continuar: \n");
+                    fgets(answer, 100, stdin);
                 } else {
-                    printf("\nEste numero deve ser excluido? (S/N): ");
-                    fgets(answer, 100, stdin);
-                    fgets(answer, 100, stdin);
-                    printf("\n");
-                    switch (answer[0]) {
-                        case 'S' | 's':
-                            mainMatrix[i][j].delete = 0;
-                            break;
-                        case 'N' | 'n':
-                            mainMatrix[i][j].delete = 1;
-                            break;
-                        default:
-                            printf("\nOpcao invalida! Digite S para sim ou N para nao.\n");
-                            break;
+                    answering = 1;
+                    while (answering) {
+                        printf("\nEste numero (%d) deve ser excluido? (S/N): ", mainMatrix[i][j].number);
+                        fgets(answer, 100, stdin);
+                        len = strlen(answer);
+                        printf("\n");
+                        switch (answer[0]) {
+                            case 'S' | 's':
+                                if (len == 2) {
+                                    mainMatrix[i][j].delete = 0;
+                                    answering = 0;
+                                } else {
+                                    printf("\nOpcao invalida! Selecione uma opcao do menu, por favor. Aperte [Enter] para continuar: \n");
+                                    fgets(answer, 100, stdin);
+                                }
+                                break;
+                            case 'N' | 'n':
+                                if (len == 2) {
+                                    mainMatrix[i][j].delete = 1;
+                                    answering = 0;
+                                } else {
+                                    printf("\nOpcao invalida! Selecione uma opcao do menu, por favor. Aperte [Enter] para continuar: \n");
+                                    fgets(answer, 100, stdin);
+                                }
+                                break;
+                            default:
+                                printf("\nOpcao invalida! Digite S para sim ou N para nao. Aperte [Enter] para continuar: \n");
+                                fgets(answer, 100, stdin);
+                                break;
+                        }
+                        clear();
                     }
-                    clear();
                     break;
                 }
                 clear();
             }
-            }
         }
+    }
     verifySuggestion(choice, size);
     while (addingGame) {//adiciona a nova fase aos arquivos
         FILE *file;
@@ -1022,126 +1223,194 @@ int main() {
         lives = 5;
         printMenu();
         fgets(answer, 100, stdin);
+        len = strlen(answer);
         switch(answer[0]) {
             case '1'://Jogar
+            if (len == 2) {
                 clear();
                 Play();
-                break;
+            } else {
+                printf("\nOpcao invalida! Selecione uma opcao do menu, por favor. Aperte [Enter] para continuar: \n");
+                fgets(answer, 100, stdin);
+            }
+            break;
             case '2'://Menu de configurações
-                clear();
-                settings = 1;
-                while (settings) {
+                if (len == 2) {
                     clear();
-                    printConfig();
-                    fgets(answer, 100, stdin);
-                    switch(answer[0]) {
-                        case '1'://Menu de dificuldades
-                            settings = 0;
-                            chooseDificulty = 1;
-                            while (chooseDificulty) {
-                                clear();
-                                printDificulty();
-                                fgets(answer, 100, stdin);
-                                switch(answer[0]) {//verifica se o jogador já zerou as fases da dificuldade que escolheu e muda se não tiver zerado todas
-                                    case '1':
-                                        if (totals[0] == solved[0]) {
-                                            printf("\nVoce ja completou todas as fases faceis! Aperte [Enter] para continuar: \n");
-                                            fgets(answer, 100, stdin);
-                                            break;
-                                        }
-                                        dificulty = 1;
-                                        chooseDificulty = 0;
-                                        break;
-                                    case '2':
-                                        if (totals[1] == solved[1]) {
-                                            printf("\nVoce ja completou todas as fases medias! Aperte [Enter] para continuar: \n");
-                                            fgets(answer, 100, stdin);
-                                            break;
-                                        }
-                                        dificulty = 2;
-                                        chooseDificulty = 0;
-                                        break;
-                                    case '3':
-                                        if (totals[2] == solved[2]) {
-                                            printf("\nVoce ja completou todas as fases dificeis! Aperte [Enter] para continuar: \n");
-                                            fgets(answer, 100, stdin);
-                                            break;
-                                        }
-                                        dificulty = 3;
-                                        chooseDificulty = 0;
-                                        break;
-                                    case '4':
-                                        chooseDificulty = 0;
-                                        settings = 1;
-                                        break;
-                                    default:
-                                        printf("\nOpcao invalida! Selecione uma dificuldade, por favor. Aperte [Enter] para continuar: \n");
+                    settings = 1;
+                    while (settings) {
+                        clear();
+                        printConfig();
+                        fgets(answer, 100, stdin);
+                        len = strlen(answer);
+                        switch(answer[0]) {
+                            case '1'://Menu de dificuldades
+                                if (len == 2) {
+                                    settings = 0;
+                                    chooseDificulty = 1;
+                                    while (chooseDificulty) {
+                                        clear();
+                                        printDificulty();
                                         fgets(answer, 100, stdin);
-                                        break;
+                                        len = strlen(answer);
+                                        switch(answer[0]) {//verifica se o jogador já zerou as fases da dificuldade que escolheu e muda se não tiver zerado todas
+                                            case '1':
+                                                if (len == 2) {
+                                                    if (totals[0] == solved[0]) {
+                                                        printf("\nVoce ja completou todas as fases faceis! Aperte [Enter] para continuar: \n");
+                                                        fgets(answer, 100, stdin);
+                                                        break;
+                                                    }
+                                                    dificulty = 1;
+                                                    chooseDificulty = 0;
+                                                } else {
+                                                    printf("\nOpcao invalida! Selecione uma opcao do menu, por favor. Aperte [Enter] para continuar: \n");
+                                                    fgets(answer, 100, stdin);
+                                                }
+                                                break;
+                                            case '2':
+                                                if (len == 2) {
+                                                    if (totals[1] == solved[1]) {
+                                                        printf("\nVoce ja completou todas as fases medias! Aperte [Enter] para continuar: \n");
+                                                        fgets(answer, 100, stdin);
+                                                        break;
+                                                    }
+                                                    dificulty = 2;
+                                                    chooseDificulty = 0;
+                                                } else {
+                                                    printf("\nOpcao invalida! Selecione uma opcao do menu, por favor. Aperte [Enter] para continuar: \n");
+                                                    fgets(answer, 100, stdin);
+                                                }
+                                                break;
+                                            case '3':
+                                                if (len == 2) {
+                                                    if (totals[2] == solved[2]) {
+                                                        printf("\nVoce ja completou todas as fases dificeis! Aperte [Enter] para continuar: \n");
+                                                        fgets(answer, 100, stdin);
+                                                        break;
+                                                    }
+                                                    dificulty = 3;
+                                                    chooseDificulty = 0;
+                                                } else {
+                                                    printf("\nOpcao invalida! Selecione uma opcao do menu, por favor. Aperte [Enter] para continuar: \n");
+                                                    fgets(answer, 100, stdin);
+                                                }
+                                                break;
+                                            case '4':
+                                                if (len == 2) {
+                                                    chooseDificulty = 0;
+                                                    settings = 1;
+                                                } else {
+                                                    printf("\nOpcao invalida! Selecione uma opcao do menu, por favor. Aperte [Enter] para continuar: \n");
+                                                    fgets(answer, 100, stdin);
+                                                }
+                                                break;
+                                            default:
+                                                printf("\nOpcao invalida! Selecione uma dificuldade, por favor. Aperte [Enter] para continuar: \n");
+                                                fgets(answer, 100, stdin);
+                                                break;
+                                        }
+                                    }
+                                } else {
+                                    printf("\nOpcao invalida! Selecione uma opcao do menu, por favor. Aperte [Enter] para continuar: \n");
+                                    fgets(answer, 100, stdin);
                                 }
-                            }
-                            break;
-                        case '2'://Menu de sugerir novo nivel
-                            settings = 0;
-                            suggesting = 1;
-                            while (suggesting) {
-                                clear();
-                                printSuggestLevel();
-                                fgets(answer, 100, stdin);
-                                switch(answer[0]) {
-                                    case '1':
+                                break;
+                            case '2'://Menu de sugerir novo nivel
+                                if (len == 2) {
+                                    settings = 0;
+                                    suggesting = 1;
+                                    while (suggesting) {
                                         clear();
-                                        suggestGame(1, 4);
-                                        break;
-                                    case '2':
-                                        clear();
-                                        suggestGame(2, 6);
-                                        break;
-                                    case '3':
-                                        clear();
-                                        suggestGame(3, 7);
-                                        break;
-                                    case '4':
-                                        suggesting = 0;
-                                        settings = 1;
-                                        break;
-                                    default:
-                                        printf("\nOpcao invalida! Selecione uma opcao de configuracao, por favor. Aperte [Enter] para continuar: \n");
+                                        printSuggestLevel();
                                         fgets(answer, 100, stdin);
-                                        break;
+                                        switch(answer[0]) {
+                                            case '1':
+                                                clear();
+                                                suggestGame(1, 4);
+                                                break;
+                                            case '2':
+                                                clear();
+                                                suggestGame(2, 6);
+                                                break;
+                                            case '3':
+                                                clear();
+                                                suggestGame(3, 7);
+                                                break;
+                                            case '4':
+                                                suggesting = 0;
+                                                settings = 1;
+                                                break;
+                                            default:
+                                                printf("\nOpcao invalida! Selecione uma opcao de configuracao, por favor. Aperte [Enter] para continuar: \n");
+                                                fgets(answer, 100, stdin);
+                                                break;
+                                        }
+                                    }
+                                } else {
+                                    printf("\nOpcao invalida! Selecione uma opcao do menu, por favor. Aperte [Enter] para continuar: \n");
+                                    fgets(answer, 100, stdin);
                                 }
-                            }
-                            break;
-                        case '3'://Reseta o ranking e mostra na tela q excluiu
-                            clear();
-                            settings = 0;
-                            resetRanking();
-                        case '4':
-                            settings = 0;
-                            break;
-                        default:
-                            printf("\nOpcao invalida! Selecione uma opcao de configuracao, por favor. Aperte [Enter] para continuar: \n");
-                            fgets(answer, 100, stdin);
-                            break;
+                                break;
+                            case '3'://Reseta o ranking e mostra na tela q excluiu
+                                if (len == 2) {
+                                    clear();
+                                    settings = 0;
+                                    resetRanking();
+                                } else {
+                                    printf("\nOpcao invalida! Selecione uma opcao do menu, por favor. Aperte [Enter] para continuar: \n");
+                                    fgets(answer, 100, stdin);
+                                }
+                            case '4':
+                                if (len == 2) {
+                                    settings = 0;
+                                } else {
+                                    printf("\nOpcao invalida! Selecione uma opcao do menu, por favor. Aperte [Enter] para continuar: \n");
+                                    fgets(answer, 100, stdin);
+                                }
+                                break;
+                            default:
+                                printf("\nOpcao invalida! Selecione uma opcao de configuracao, por favor. Aperte [Enter] para continuar: \n");
+                                fgets(answer, 100, stdin);
+                                break;
+                        }
                     }
+                } else {
+                    printf("\nOpcao invalida! Selecione uma opcao do menu, por favor. Aperte [Enter] para continuar: \n");
+                    fgets(answer, 100, stdin);
                 }
                 break;
             case '3'://Menu de ranking
-                ranking = 1;
-                while (ranking) {
-                    clear();
-                    printRanking();
+                if (len == 2) {
+                    ranking = 1;
+                    while (ranking) {
+                        clear();
+                        printRanking();
+                        fgets(answer, 100, stdin);
+                        ranking = 0;
+                    }
+                } else {
+                    printf("\nOpcao invalida! Selecione uma opcao do menu, por favor. Aperte [Enter] para continuar: \n");
                     fgets(answer, 100, stdin);
-                    ranking = 0;
                 }
                 break;
             case '4'://Menu de instruções
-                clear();
-                instructions = 1;
-                printInstructions();
+                if (len == 2) {
+                    clear();
+                    instructions = 1;
+                    printInstructions();
+                } else {
+                    printf("\nOpcao invalida! Selecione uma opcao do menu, por favor. Aperte [Enter] para continuar: \n");
+                    fgets(answer, 100, stdin);
+                }
                 break;
             case '5':
-                return 0;
+                if (len == 2) {
+                    return 0;
+                } else {
+                    printf("\nOpcao invalida! Selecione uma opcao do menu, por favor. Aperte [Enter] para continuar: \n");
+                    fgets(answer, 100, stdin);
+                }
                 break;
             default:
                 printf("\nOpcao invalida! Selecione uma opcao do menu, por favor. Aperte [Enter] para continuar: \n");
