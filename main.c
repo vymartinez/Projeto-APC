@@ -520,11 +520,10 @@ void playGame(int size) {//printa a matriz atualizada na tela e verifica se o jo
 }
 
 void verifySuggestion(int choice, int size) {//verifica se a sugestão do jogador não possui erros (linha primeiro, coluna depois)
-    int sum;
+    int sum, total;
     int nums[size];
-    int total = 0;
     for (int i = 0; i < size; i++) {
-        sum = 0;
+        sum = total = 0;
         for (int j = 0; j < size; j++) {
             if (mainMatrix[i][j].delete == 1) {
                 sum += mainMatrix[i][j].number;
@@ -554,6 +553,7 @@ void verifySuggestion(int choice, int size) {//verifica se a sugestão do jogado
                             printf("\nDigite um novo valor para esse numero: ");
                             scanf("%d", &rowsSum[i]);
                             fgets(answer, 100, stdin);//limpa o buffer
+                            clear();
                             verifySuggestion(choice, size);
                             return;
                         } else {
@@ -596,6 +596,8 @@ void verifySuggestion(int choice, int size) {//verifica se a sugestão do jogado
                                             if (len == 2) {
                                                 printf("\nDigite um novo valor para esse numero: ");
                                                 scanf("%d", &mainMatrix[i][k].number);
+                                                fgets(answer, 100, stdin);//limpa o buffer
+                                                clear();
                                                 verifySuggestion(choice, size);
                                                 return;
                                             } else {
@@ -614,6 +616,7 @@ void verifySuggestion(int choice, int size) {//verifica se a sugestão do jogado
                                                         case 'S' | 's':
                                                             if (len == 2) {
                                                                 mainMatrix[i][k].delete = 0;
+                                                                clear();
                                                                 verifySuggestion(choice, size);
                                                                 return;
                                                             } else {
@@ -624,6 +627,7 @@ void verifySuggestion(int choice, int size) {//verifica se a sugestão do jogado
                                                         case 'N' | 'n':
                                                             if (len == 2) {
                                                                 mainMatrix[i][k].delete = 1;
+                                                                clear();
                                                                 verifySuggestion(choice, size);
                                                                 return;
                                                             } else {
@@ -674,9 +678,7 @@ void verifySuggestion(int choice, int size) {//verifica se a sugestão do jogado
         }
     }
     for (int i = 0; i < size; i++) {
-        sum = 0;
-        int nums[size];
-        int total = 0;
+        sum = total = 0;
         for (int j = 0; j < size; j++) {
             if (mainMatrix[j][i].delete == 1) {
                 sum += mainMatrix[j][i].number;
@@ -705,7 +707,8 @@ void verifySuggestion(int choice, int size) {//verifica se a sugestão do jogado
                         if (len == 2) {
                             printf("\nDigite um novo valor para esse numero: ");
                             scanf("%d", &colsSum[i]);
-                            fgets(answer, 100, stdin);
+                            fgets(answer, 100, stdin);//limpa o buffer
+                            clear();
                             verifySuggestion(choice, size);
                             return;
                         } else {
@@ -748,7 +751,8 @@ void verifySuggestion(int choice, int size) {//verifica se a sugestão do jogado
                                             if (len == 2) {
                                                 printf("\nDigite um novo valor para esse numero: ");
                                                 scanf("%d", &mainMatrix[i][k].number);
-                                                fgets(answer, 100, stdin);
+                                                fgets(answer, 100, stdin);//limpa o buffer
+                                                clear();
                                                 verifySuggestion(choice, size);
                                                 return;
                                             } else {
@@ -767,6 +771,7 @@ void verifySuggestion(int choice, int size) {//verifica se a sugestão do jogado
                                                         case 'S' | 's':
                                                             if (len == 2) {
                                                                 mainMatrix[i][k].delete = 0;
+                                                                clear();
                                                                 verifySuggestion(choice, size);
                                                                 return;
                                                             } else {
@@ -777,6 +782,7 @@ void verifySuggestion(int choice, int size) {//verifica se a sugestão do jogado
                                                         case 'N' | 'n':
                                                             if (len == 2) {
                                                                 mainMatrix[i][k].delete = 1;
+                                                                clear();
                                                                 verifySuggestion(choice, size);
                                                                 return;
                                                             } else {
@@ -1406,6 +1412,7 @@ int main() {
                 break;
             case '5':
                 if (len == 2) {
+                    printf("\n\nObrigado por jogar! Ate a proxima!\n");
                     return 0;
                 } else {
                     printf("\nOpcao invalida! Selecione uma opcao do menu, por favor. Aperte [Enter] para continuar: \n");
