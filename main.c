@@ -202,6 +202,13 @@ void EnterNickname() {//armazena o novo player e verifica se já jogou antes par
 }
 
 void resetRanking() {//reseta o ranking
+    printf("\nTem certeza que deseja resetar o ranking? escreva: 'SIM' para continuar.\n");
+    printf("O envio de qualquer outro texto apenas o voltará para o menu.\n");
+    fgets(answer, 100, stdin);
+    if (strcmp(answer, "SIM\n") != 0) {
+        menu = 1;
+        return;
+    }
     player.score = 0;
     played = 1;
     FILE *file = fopen("ranking.bin","wb");
@@ -1412,7 +1419,7 @@ int main() {
                 break;
             case '5':
                 if (len == 2) {
-                    printf("\n\nObrigado por jogar! Ate a proxima!\n");
+                    printf("\nObrigado por jogar! Ate a proxima!\n\n");
                     return 0;
                 } else {
                     printf("\nOpcao invalida! Selecione uma opcao do menu, por favor. Aperte [Enter] para continuar: \n");
